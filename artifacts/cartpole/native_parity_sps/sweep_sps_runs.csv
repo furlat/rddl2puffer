@@ -1,0 +1,9 @@
+label,run_index,final_sps,peak_sps,mean_sps,final_score,log_path
+native,1,7387781.000000,7387781.000000,7321035.000000,196.962006,/home/tommaso/Dev/rddl2puffer/third_party/pufferlib/logs_sweep_native_cartpole_parity/cartpole/1776558477593.json
+native,2,7316322.000000,7316322.000000,7248340.500000,196.962006,/home/tommaso/Dev/rddl2puffer/third_party/pufferlib/logs_sweep_native_cartpole_parity/cartpole/1776558480573.json
+native,3,900901.000000,900901.000000,891954.833333,49.229729,/home/tommaso/Dev/rddl2puffer/third_party/pufferlib/logs_sweep_native_cartpole_parity/cartpole/1776558483403.json
+native,4,4429045.000000,4429045.000000,4429045.000000,11.494328,/home/tommaso/Dev/rddl2puffer/third_party/pufferlib/logs_sweep_native_cartpole_parity/cartpole/1776558492040.json
+generated,1,7927417.000000,7927417.000000,7927329.500000,194.396576,/home/tommaso/Dev/rddl2puffer/third_party/pufferlib/logs_sweep_rddl_cartpole_parity/rddl_cartpole_discrete/1776558530459.json
+generated,2,8017689.000000,8017689.000000,7942546.500000,194.396576,/home/tommaso/Dev/rddl2puffer/third_party/pufferlib/logs_sweep_rddl_cartpole_parity/rddl_cartpole_discrete/1776558533220.json
+generated,3,542087.000000,585218.000000,559444.400000,153.593582,/home/tommaso/Dev/rddl2puffer/third_party/pufferlib/logs_sweep_rddl_cartpole_parity/rddl_cartpole_discrete/1776558535868.json
+generated,4,2353948.000000,2353948.000000,2335899.250000,15.769175,/home/tommaso/Dev/rddl2puffer/third_party/pufferlib/logs_sweep_rddl_cartpole_parity/rddl_cartpole_discrete/1776558550750.json

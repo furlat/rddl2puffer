@@ -1,0 +1,14 @@
+{
+  "episodes": 50000,
+  "max_return": 141.0,
+  "mean_length": 19.8206,
+  "mean_return": 19.8206,
+  "min_return": 7.0,
+  "quantile_05": 8.0,
+  "quantile_25": 11.0,
+  "quantile_50": 16.0,
+  "quantile_75": 25.0,
+  "quantile_95": 44.0,
+  "seed": 123,
+  "stdev_return": 12.156187545443679
+}

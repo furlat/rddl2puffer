@@ -1,0 +1,9 @@
+label,env_name,final_score,peak_score,final_steps,hidden_size,num_layers,total_agents,num_buffers,gpu_percent,vram_used_gb,log_path
+native,cartpole,196.962006,196.962006,5636096,32.000000,2.113270,4096.000000,4.788960,36.000000,1.866760,third_party/pufferlib/logs_sweep_native_cartpole_verify_fix_20260419/cartpole/1776590442160.json
+native,cartpole,196.962006,197.573395,5636096,32.000000,2.113270,4096.000000,4.788960,36.000000,1.866760,third_party/pufferlib/logs_sweep_native_cartpole_verify_fix_20260419/cartpole/1776590445693.json
+native,cartpole,20.068420,20.068420,6291456,128.000000,1.044559,512.000000,3.210094,82.000000,2.312073,third_party/pufferlib/logs_sweep_native_cartpole_verify_fix_20260419/cartpole/1776590448425.json
+native,cartpole,20.217505,48.127553,6029312,512.000000,5.433639,4096.000000,7.389246,80.000000,2.696838,third_party/pufferlib/logs_sweep_native_cartpole_verify_fix_20260419/cartpole/1776590462447.json
+generated,rddl_cartpole_discrete,194.396576,195.367538,5636096,32.000000,2.000000,4096.000000,4.000000,33.000000,1.866760,third_party/pufferlib/logs_sweep_rddl_cartpole_verify_20260419/rddl_cartpole_discrete/1776589040809.json
+generated,rddl_cartpole_discrete,194.396576,194.816315,5636096,32.000000,2.000000,4096.000000,4.000000,32.000000,1.866760,third_party/pufferlib/logs_sweep_rddl_cartpole_verify_20260419/rddl_cartpole_discrete/1776589043752.json
+generated,rddl_cartpole_discrete,10.872342,10.872342,6553600,256.000000,2.004362,1024.000000,3.340515,38.000000,2.376526,third_party/pufferlib/logs_sweep_rddl_cartpole_verify_20260419/rddl_cartpole_discrete/1776589046296.json
+generated,rddl_cartpole_discrete,176.541855,180.311584,5472256,64.000000,5.272253,2048.000000,4.980641,62.000000,1.903870,third_party/pufferlib/logs_sweep_rddl_cartpole_verify_20260419/rddl_cartpole_discrete/1776589052278.json

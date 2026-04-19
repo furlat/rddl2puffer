@@ -1,0 +1,156 @@
+{
+  "delta": {
+    "best_final_score_gap": 66.18333435058594,
+    "mean_final_score_gap": 38.26160717010498,
+    "median_final_score_gap": 45.8438081741333,
+    "success_count_100_gap": 0
+  },
+  "generated": {
+    "best_run": {
+      "env_name": "rddl_cartpole_discrete",
+      "final_score": 130.77867126464844,
+      "final_steps": 52428800.0,
+      "gpu_percent": 33.0,
+      "hidden_size": 32.0,
+      "log_path": "third_party/pufferlib/logs_sweep_compare_generated4/rddl_cartpole_discrete/1776540730407.json",
+      "num_buffers": 4.0,
+      "num_layers": 2.0,
+      "peak_score": 183.598876953125,
+      "total_agents": 4096.0,
+      "vram_used_gb": 1.86676025390625
+    },
+    "label": "generated_rddl_cartpole",
+    "mean_final_score": 74.29708981513977,
+    "median_final_score": 75.96670246124268,
+    "num_runs": 4,
+    "runs": [
+      {
+        "env_name": "rddl_cartpole_discrete",
+        "final_score": 130.77867126464844,
+        "final_steps": 52428800.0,
+        "gpu_percent": 33.0,
+        "hidden_size": 32.0,
+        "log_path": "third_party/pufferlib/logs_sweep_compare_generated4/rddl_cartpole_discrete/1776540730407.json",
+        "num_buffers": 4.0,
+        "num_layers": 2.0,
+        "peak_score": 183.598876953125,
+        "total_agents": 4096.0,
+        "vram_used_gb": 1.86676025390625
+      },
+      {
+        "env_name": "rddl_cartpole_discrete",
+        "final_score": 130.77867126464844,
+        "final_steps": 52428800.0,
+        "gpu_percent": 34.0,
+        "hidden_size": 32.0,
+        "log_path": "third_party/pufferlib/logs_sweep_compare_generated4/rddl_cartpole_discrete/1776540739165.json",
+        "num_buffers": 4.0,
+        "num_layers": 2.0,
+        "peak_score": 179.08389282226562,
+        "total_agents": 4096.0,
+        "vram_used_gb": 1.86676025390625
+      },
+      {
+        "env_name": "rddl_cartpole_discrete",
+        "final_score": 14.476283073425293,
+        "final_steps": 5177344.0,
+        "gpu_percent": 58.0,
+        "hidden_size": 128.0,
+        "log_path": "third_party/pufferlib/logs_sweep_compare_generated4/rddl_cartpole_discrete/1776540747733.json",
+        "num_buffers": 4.779216796159744,
+        "num_layers": 3.3485369058325887,
+        "peak_score": 23.430479049682617,
+        "total_agents": 2048.0,
+        "vram_used_gb": 2.02691650390625
+      },
+      {
+        "env_name": "rddl_cartpole_discrete",
+        "final_score": 21.154733657836914,
+        "final_steps": 4194304.0,
+        "gpu_percent": 99.0,
+        "hidden_size": 512.0,
+        "log_path": "third_party/pufferlib/logs_sweep_compare_generated4/rddl_cartpole_discrete/1776540751633.json",
+        "num_buffers": 1.923931686207652,
+        "num_layers": 6.920942164957523,
+        "peak_score": 21.176206588745117,
+        "total_agents": 4096.0,
+        "vram_used_gb": 2.78277587890625
+      }
+    ],
+    "success_count_100": 2
+  },
+  "native": {
+    "best_run": {
+      "env_name": "cartpole",
+      "final_score": 196.96200561523438,
+      "final_steps": 5636096.0,
+      "gpu_percent": 28.0,
+      "hidden_size": 32.0,
+      "log_path": "third_party/pufferlib/logs_sweep_compare_native4/cartpole/1776540667615.json",
+      "num_buffers": 4.78896,
+      "num_layers": 2.11327,
+      "peak_score": 197.63221740722656,
+      "total_agents": 4096.0,
+      "vram_used_gb": 1.86676025390625
+    },
+    "label": "native_cartpole",
+    "mean_final_score": 112.55869698524475,
+    "median_final_score": 121.81051063537598,
+    "num_runs": 4,
+    "runs": [
+      {
+        "env_name": "cartpole",
+        "final_score": 196.96200561523438,
+        "final_steps": 5636096.0,
+        "gpu_percent": 28.0,
+        "hidden_size": 32.0,
+        "log_path": "third_party/pufferlib/logs_sweep_compare_native4/cartpole/1776540667615.json",
+        "num_buffers": 4.78896,
+        "num_layers": 2.11327,
+        "peak_score": 197.63221740722656,
+        "total_agents": 4096.0,
+        "vram_used_gb": 1.86676025390625
+      },
+      {
+        "env_name": "cartpole",
+        "final_score": 196.96200561523438,
+        "final_steps": 5636096.0,
+        "gpu_percent": 29.0,
+        "hidden_size": 32.0,
+        "log_path": "third_party/pufferlib/logs_sweep_compare_native4/cartpole/1776540670481.json",
+        "num_buffers": 4.78896,
+        "num_layers": 2.11327,
+        "peak_score": 197.63221740722656,
+        "total_agents": 4096.0,
+        "vram_used_gb": 1.86676025390625
+      },
+      {
+        "env_name": "cartpole",
+        "final_score": 9.651761054992676,
+        "final_steps": 4194304.0,
+        "gpu_percent": 100.0,
+        "hidden_size": 512.0,
+        "log_path": "third_party/pufferlib/logs_sweep_compare_native4/cartpole/1776540673173.json",
+        "num_buffers": 1.9184851264581084,
+        "num_layers": 3.8592878691852093,
+        "peak_score": 9.657888412475586,
+        "total_agents": 8192.0,
+        "vram_used_gb": 5.06207275390625
+      },
+      {
+        "env_name": "cartpole",
+        "final_score": 46.65901565551758,
+        "final_steps": 5832704.0,
+        "gpu_percent": 55.0,
+        "hidden_size": 128.0,
+        "log_path": "third_party/pufferlib/logs_sweep_compare_native4/cartpole/1776540683120.json",
+        "num_buffers": 6.91524666082114,
+        "num_layers": 6.441566610708833,
+        "peak_score": 159.04577128092447,
+        "total_agents": 512.0,
+        "vram_used_gb": 2.00152587890625
+      }
+    ],
+    "success_count_100": 2
+  }
+}

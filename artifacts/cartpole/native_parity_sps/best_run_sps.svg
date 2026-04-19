@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="560" viewBox="0 0 980 560">
+<rect width="100%" height="100%" fill="#fcfcfb" />
+<text x="90" y="28" font-family="monospace" font-size="22" fill="#1f2933">CartPole SPS comparison: native vs generated</text>
+<text x="90" y="46" font-family="monospace" font-size="12" fill="#52606d">Matched best/default run. Steps per second over logged agent-step checkpoints.</text>
+<line x1="90" y1="490.00" x2="950" y2="490.00" stroke="#d5d8dc" stroke-width="1" />
+<text x="78" y="494.00" text-anchor="end" font-family="monospace" font-size="12" fill="#4a5568">0.0M</text>
+<line x1="90" y1="404.00" x2="950" y2="404.00" stroke="#d5d8dc" stroke-width="1" />
+<text x="78" y="408.00" text-anchor="end" font-family="monospace" font-size="12" fill="#4a5568">1.6M</text>
+<line x1="90" y1="318.00" x2="950" y2="318.00" stroke="#d5d8dc" stroke-width="1" />
+<text x="78" y="322.00" text-anchor="end" font-family="monospace" font-size="12" fill="#4a5568">3.2M</text>
+<line x1="90" y1="232.00" x2="950" y2="232.00" stroke="#d5d8dc" stroke-width="1" />
+<text x="78" y="236.00" text-anchor="end" font-family="monospace" font-size="12" fill="#4a5568">4.8M</text>
+<line x1="90" y1="146.00" x2="950" y2="146.00" stroke="#d5d8dc" stroke-width="1" />
+<text x="78" y="150.00" text-anchor="end" font-family="monospace" font-size="12" fill="#4a5568">6.4M</text>
+<line x1="90" y1="60.00" x2="950" y2="60.00" stroke="#d5d8dc" stroke-width="1" />
+<text x="78" y="64.00" text-anchor="end" font-family="monospace" font-size="12" fill="#4a5568">8.0M</text>
+<line x1="90" y1="490" x2="950" y2="490" stroke="#1f2933" stroke-width="2" />
+<line x1="90" y1="60" x2="90" y2="490" stroke="#1f2933" stroke-width="2" />
+<line x1="90.00" y1="490" x2="90.00" y2="496" stroke="#1f2933" stroke-width="1.5" />
+<text x="90.00" y="542" text-anchor="middle" font-family="monospace" font-size="12" fill="#4a5568">0.0M</text>
+<line x1="305.00" y1="490" x2="305.00" y2="496" stroke="#1f2933" stroke-width="1.5" />
+<text x="305.00" y="542" text-anchor="middle" font-family="monospace" font-size="12" fill="#4a5568">1.4M</text>
+<line x1="520.00" y1="490" x2="520.00" y2="496" stroke="#1f2933" stroke-width="1.5" />
+<text x="520.00" y="542" text-anchor="middle" font-family="monospace" font-size="12" fill="#4a5568">2.8M</text>
+<line x1="735.00" y1="490" x2="735.00" y2="496" stroke="#1f2933" stroke-width="1.5" />
+<text x="735.00" y="542" text-anchor="middle" font-family="monospace" font-size="12" fill="#4a5568">4.2M</text>
+<line x1="950.00" y1="490" x2="950.00" y2="496" stroke="#1f2933" stroke-width="1.5" />
+<text x="950.00" y="542" text-anchor="middle" font-family="monospace" font-size="12" fill="#4a5568">5.6M</text>
+<polyline fill="none" stroke="#127fbf" stroke-width="4" points="750.00,107.26 950.00,92.91 950.00,92.91 950.00,92.91" />
+<polyline fill="none" stroke="#0b6e4f" stroke-width="4" points="830.00,63.92 950.00,63.90 950.00,63.90 950.00,63.90" />
+<circle cx="950.00" cy="92.91" r="5" fill="#127fbf" />
+<circle cx="950.00" cy="63.90" r="5" fill="#0b6e4f" />
+<text x="942.00" y="80.91" text-anchor="end" font-family="monospace" font-size="12" fill="#127fbf">native 7.39M</text>
+<text x="958.00" y="51.90" font-family="monospace" font-size="12" fill="#0b6e4f">generated 7.93M</text>
+<rect x="660" y="72" width="16" height="16" fill="#127fbf" />
+<text x="684" y="85" font-family="monospace" font-size="12" fill="#1f2933">native cartpole</text>
+<rect x="660" y="98" width="16" height="16" fill="#0b6e4f" />
+<text x="684" y="111" font-family="monospace" font-size="12" fill="#1f2933">generated rddl_cartpole_discrete</text>
+<text x="490.00" y="556" text-anchor="middle" font-family="monospace" font-size="12" fill="#4a5568">agent steps</text>
+<text x="20" y="280.00" transform="rotate(-90 20 280.00)" text-anchor="middle" font-family="monospace" font-size="12" fill="#4a5568">steps per second (SPS)</text>
+</svg>

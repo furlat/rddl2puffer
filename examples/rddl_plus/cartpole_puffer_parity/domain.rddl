@@ -1,0 +1,106 @@
+//% runtime_semantics.zero_reward_on_done = true
+//% puffer_logging.score_mode = "tick"
+//% puffer_logging.perf_mode = "positive_return_div_horizon"
+//% puffer_config.vec.total_agents = 4096
+//% puffer_config.vec.num_buffers = 4
+//% puffer_config.vec.num_threads = 16
+//% puffer_config.policy.hidden_size = 32
+//% puffer_config.policy.num_layers = 2
+//% puffer_config.policy.expansion_factor = 1
+//% puffer_config.train.gpus = 1
+//% puffer_config.train.seed = 42
+//% puffer_config.train.total_timesteps = 5642560
+//% puffer_config.train.learning_rate = 0.1
+//% puffer_config.train.anneal_lr = 1
+//% puffer_config.train.min_lr_ratio = 0
+//% puffer_config.train.gamma = 0.8
+//% puffer_config.train.gae_lambda = 0.922151
+//% puffer_config.train.replay_ratio = 0.381289
+//% puffer_config.train.clip_coef = 0.143548
+//% puffer_config.train.vf_coef = 1.77975
+//% puffer_config.train.vf_clip_coef = 3.90833
+//% puffer_config.train.max_grad_norm = 0.329667
+//% puffer_config.train.ent_coef = 0.0367726
+//% puffer_config.train.beta1 = 0.942691
+//% puffer_config.train.beta2 = 0.907572
+//% puffer_config.train.eps = 4.6046e-09
+//% puffer_config.train.minibatch_size = 16384
+//% puffer_config.train.horizon = 32
+//% puffer_config.train.vtrace_rho_clip = 2.91145
+//% puffer_config.train.vtrace_c_clip = 1.66148
+//% puffer_config.train.prio_alpha = 0.786776
+//% puffer_config.train.prio_beta0 = 0.348617
+//% puffer_config.sweep.method = "Protein"
+//% puffer_config.sweep.metric = "perf"
+//% puffer_config.sweep.use_gpu = false
+//% puffer_config.sweep.train.total_timesteps.distribution = "log_normal"
+//% puffer_config.sweep.train.total_timesteps.min = 5000000
+//% puffer_config.sweep.train.total_timesteps.max = 20000000
+//% puffer_config.sweep.train.total_timesteps.mean = 10000000
+domain cartpole_puffer_discrete {
+
+    requirements = {
+        reward-deterministic
+    };
+
+    pvariables {
+        GRAVITY   : { non-fluent, real, default = 9.8 };
+        FORCE-MAG : { non-fluent, real, default = 10.0 };
+        CART-MASS : { non-fluent, real, default = 1.0 };
+        POLE-MASS : { non-fluent, real, default = 0.1 };
+        POLE-LEN  : { non-fluent, real, default = 0.5 };
+        TIME-STEP : { non-fluent, real, default = 0.02 };
+        POS-LIMIT : { non-fluent, real, default = 2.4 };
+        ANG-LIMIT : { non-fluent, real, default = 0.2094395 };
+
+        force : { interm-fluent, real, level = 1 };
+        total-mass : { interm-fluent, real, level = 1 };
+        polemass-length : { interm-fluent, real, level = 2 };
+        temp : { interm-fluent, real, level = 3 };
+        ang-acc : { interm-fluent, real, level = 4 };
+        acc : { interm-fluent, real, level = 5 };
+
+        pos : { state-fluent, real, default = 0.0 };
+        vel : { state-fluent, real, default = 0.0 };
+        ang-pos : { state-fluent, real, default = 0.0 };
+        ang-vel : { state-fluent, real, default = 0.0 };
+
+        force-side : { action-fluent, int, default = 0 };
+    };
+
+    cpfs {
+        force = if (force-side == 1)
+                then FORCE-MAG
+                else -FORCE-MAG;
+
+        total-mass = CART-MASS + POLE-MASS;
+        polemass-length = total-mass + POLE-MASS;
+
+        temp = (force + polemass-length * pow[ang-vel, 2] * sin[ang-pos]) / total-mass;
+        ang-acc = (GRAVITY * sin[ang-pos] - cos[ang-pos] * temp) /
+                  (POLE-LEN * ((4.0 / 3.0) - (total-mass * pow[cos[ang-pos], 2] / total-mass)));
+        acc = temp - (polemass-length * ang-acc * cos[ang-pos] / total-mass);
+
+        pos' = pos + TIME-STEP * vel;
+        vel' = vel + TIME-STEP * acc;
+        ang-pos' = ang-pos + TIME-STEP * ang-vel;
+        ang-vel' = ang-vel + TIME-STEP * ang-acc;
+    };
+
+    reward = if ((pos + TIME-STEP * vel) < -POS-LIMIT |
+                 (pos + TIME-STEP * vel) > POS-LIMIT |
+                 (ang-pos + TIME-STEP * ang-vel) < -ANG-LIMIT |
+                 (ang-pos + TIME-STEP * ang-vel) > ANG-LIMIT)
+             then 0.0
+             else 1.0;
+
+    termination {
+        pos < -POS-LIMIT | pos > POS-LIMIT;
+        ang-pos < -ANG-LIMIT | ang-pos > ANG-LIMIT;
+    };
+
+    action-preconditions {
+        force-side >= 0;
+        force-side <= 1;
+    };
+}

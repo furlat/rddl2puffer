@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="620" viewBox="0 0 1000 620">
+<rect width="100%" height="100%" fill="#fcfcfb"/>
+<text x="90" y="30" font-family="monospace" font-size="22" fill="#1f2933">CartPole native vs compiled-RDDL SPS</text>
+<text x="90" y="48" font-family="monospace" font-size="12" fill="#52606d">Fresh April 19 runs from plain puffer train with working configs.</text>
+<line x1="90" y1="540.00" x2="970" y2="540.00" stroke="#d5d8dc" stroke-width="1"/>
+<line x1="90" y1="420.00" x2="970" y2="420.00" stroke="#d5d8dc" stroke-width="1"/>
+<line x1="90" y1="300.00" x2="970" y2="300.00" stroke="#d5d8dc" stroke-width="1"/>
+<line x1="90" y1="180.00" x2="970" y2="180.00" stroke="#d5d8dc" stroke-width="1"/>
+<line x1="90" y1="60.00" x2="970" y2="60.00" stroke="#d5d8dc" stroke-width="1"/>
+<line x1="90" y1="540" x2="970" y2="540" stroke="#1f2933" stroke-width="2"/>
+<line x1="90" y1="60" x2="90" y2="540" stroke="#1f2933" stroke-width="2"/>
+<path d="M806.28,62.10 L970.00,60.00 L970.00,60.00 L970.00,60.00" fill="none" stroke="#127fbf" stroke-width="3"/>
+<circle cx="970.00" cy="60.00" r="4" fill="#127fbf"/>
+<text x="978.00" y="52.00" font-family="monospace" font-size="12" fill="#127fbf">native: 7.52M SPS, score 197.0</text>
+<path d="M765.35,92.05 L970.00,93.85 L970.00,93.85 L970.00,93.85" fill="none" stroke="#0b6e4f" stroke-width="3"/>
+<circle cx="970.00" cy="93.85" r="4" fill="#0b6e4f"/>
+<text x="978.00" y="85.85" font-family="monospace" font-size="12" fill="#0b6e4f">generated: 6.99M SPS, score 194.4</text>
+<text x="78" y="544.00" text-anchor="end" font-family="monospace" font-size="12" fill="#4a5568">0.0M</text>
+<text x="78" y="424.00" text-anchor="end" font-family="monospace" font-size="12" fill="#4a5568">1.9M</text>
+<text x="78" y="304.00" text-anchor="end" font-family="monospace" font-size="12" fill="#4a5568">3.8M</text>
+<text x="78" y="184.00" text-anchor="end" font-family="monospace" font-size="12" fill="#4a5568">5.6M</text>
+<text x="78" y="64.00" text-anchor="end" font-family="monospace" font-size="12" fill="#4a5568">7.5M</text>
+<text x="90.00" y="600" text-anchor="middle" font-family="monospace" font-size="12" fill="#4a5568">0.0M</text>
+<text x="310.00" y="600" text-anchor="middle" font-family="monospace" font-size="12" fill="#4a5568">1.4M</text>
+<text x="530.00" y="600" text-anchor="middle" font-family="monospace" font-size="12" fill="#4a5568">2.8M</text>
+<text x="750.00" y="600" text-anchor="middle" font-family="monospace" font-size="12" fill="#4a5568">4.2M</text>
+<text x="970.00" y="600" text-anchor="middle" font-family="monospace" font-size="12" fill="#4a5568">5.6M</text>
+<text x="500.00" y="615" text-anchor="middle" font-family="monospace" font-size="12" fill="#4a5568">Agent steps</text>
+<text x="20" y="310.00" transform="rotate(-90 20 310.00)" text-anchor="middle" font-family="monospace" font-size="12" fill="#4a5568">SPS</text>
+</svg>

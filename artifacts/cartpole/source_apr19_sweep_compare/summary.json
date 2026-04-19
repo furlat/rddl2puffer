@@ -1,0 +1,156 @@
+{
+  "delta": {
+    "best_final_score_gap": 2.5654296875,
+    "mean_final_score_gap": 1.7419071197509766,
+    "median_final_score_gap": 1.698136329650879,
+    "success_count_100_gap": 0
+  },
+  "generated": {
+    "best_run": {
+      "env_name": "rddl_cartpole_discrete",
+      "final_score": 194.39657592773438,
+      "final_steps": 5636096.0,
+      "gpu_percent": 29.0,
+      "hidden_size": 32.0,
+      "log_path": "/home/tommaso/Dev/rddl2puffer/third_party/pufferlib/logs_sweep_source_apr19/rddl_cartpole_discrete/1776592158917.json",
+      "num_buffers": 4.0,
+      "num_layers": 2.0,
+      "peak_score": 194.81631469726562,
+      "total_agents": 4096.0,
+      "vram_used_gb": 1.86676025390625
+    },
+    "label": "generated_rddl_cartpole",
+    "mean_final_score": 101.8183319568634,
+    "median_final_score": 102.22383165359497,
+    "num_runs": 4,
+    "runs": [
+      {
+        "env_name": "rddl_cartpole_discrete",
+        "final_score": 194.39657592773438,
+        "final_steps": 5636096.0,
+        "gpu_percent": 29.0,
+        "hidden_size": 32.0,
+        "log_path": "/home/tommaso/Dev/rddl2puffer/third_party/pufferlib/logs_sweep_source_apr19/rddl_cartpole_discrete/1776592158917.json",
+        "num_buffers": 4.0,
+        "num_layers": 2.0,
+        "peak_score": 194.81631469726562,
+        "total_agents": 4096.0,
+        "vram_used_gb": 1.86676025390625
+      },
+      {
+        "env_name": "rddl_cartpole_discrete",
+        "final_score": 194.39657592773438,
+        "final_steps": 5636096.0,
+        "gpu_percent": 28.0,
+        "hidden_size": 32.0,
+        "log_path": "/home/tommaso/Dev/rddl2puffer/third_party/pufferlib/logs_sweep_source_apr19/rddl_cartpole_discrete/1776592161945.json",
+        "num_buffers": 4.0,
+        "num_layers": 2.0,
+        "peak_score": 195.6960906982422,
+        "total_agents": 4096.0,
+        "vram_used_gb": 1.86676025390625
+      },
+      {
+        "env_name": "rddl_cartpole_discrete",
+        "final_score": 10.051087379455566,
+        "final_steps": 5144576.0,
+        "gpu_percent": 43.0,
+        "hidden_size": 128.0,
+        "log_path": "/home/tommaso/Dev/rddl2puffer/third_party/pufferlib/logs_sweep_source_apr19/rddl_cartpole_discrete/1776592164830.json",
+        "num_buffers": 5.5409995801746845,
+        "num_layers": 5.691023327410221,
+        "peak_score": 10.120966911315918,
+        "total_agents": 2048.0,
+        "vram_used_gb": 2.02886962890625
+      },
+      {
+        "env_name": "rddl_cartpole_discrete",
+        "final_score": 8.429088592529297,
+        "final_steps": 4194304.0,
+        "gpu_percent": 99.0,
+        "hidden_size": 512.0,
+        "log_path": "/home/tommaso/Dev/rddl2puffer/third_party/pufferlib/logs_sweep_source_apr19/rddl_cartpole_discrete/1776592168325.json",
+        "num_buffers": 3.0552485389634967,
+        "num_layers": 1.3516822215169668,
+        "peak_score": 8.429088592529297,
+        "total_agents": 16384.0,
+        "vram_used_gb": 2.70269775390625
+      }
+    ],
+    "success_count_100": 2
+  },
+  "native": {
+    "best_run": {
+      "env_name": "cartpole",
+      "final_score": 196.96200561523438,
+      "final_steps": 5636096.0,
+      "gpu_percent": 32.0,
+      "hidden_size": 32.0,
+      "log_path": "/home/tommaso/Dev/rddl2puffer/third_party/pufferlib/logs_sweep_native_apr19/cartpole/1776592112566.json",
+      "num_buffers": 4.78896,
+      "num_layers": 2.11327,
+      "peak_score": 197.63221740722656,
+      "total_agents": 4096.0,
+      "vram_used_gb": 1.86676025390625
+    },
+    "label": "native_cartpole",
+    "mean_final_score": 103.56023907661438,
+    "median_final_score": 103.92196798324585,
+    "num_runs": 4,
+    "runs": [
+      {
+        "env_name": "cartpole",
+        "final_score": 196.96200561523438,
+        "final_steps": 5636096.0,
+        "gpu_percent": 32.0,
+        "hidden_size": 32.0,
+        "log_path": "/home/tommaso/Dev/rddl2puffer/third_party/pufferlib/logs_sweep_native_apr19/cartpole/1776592112566.json",
+        "num_buffers": 4.78896,
+        "num_layers": 2.11327,
+        "peak_score": 197.63221740722656,
+        "total_agents": 4096.0,
+        "vram_used_gb": 1.86676025390625
+      },
+      {
+        "env_name": "cartpole",
+        "final_score": 196.96200561523438,
+        "final_steps": 5636096.0,
+        "gpu_percent": 32.0,
+        "hidden_size": 32.0,
+        "log_path": "/home/tommaso/Dev/rddl2puffer/third_party/pufferlib/logs_sweep_native_apr19/cartpole/1776592115507.json",
+        "num_buffers": 4.78896,
+        "num_layers": 2.11327,
+        "peak_score": 197.57339477539062,
+        "total_agents": 4096.0,
+        "vram_used_gb": 1.86676025390625
+      },
+      {
+        "env_name": "cartpole",
+        "final_score": 10.881930351257324,
+        "final_steps": 5242880.0,
+        "gpu_percent": 87.0,
+        "hidden_size": 512.0,
+        "log_path": "/home/tommaso/Dev/rddl2puffer/third_party/pufferlib/logs_sweep_native_apr19/cartpole/1776592118077.json",
+        "num_buffers": 7.401318425312638,
+        "num_layers": 3.769019073806703,
+        "peak_score": 11.08630084991455,
+        "total_agents": 8192.0,
+        "vram_used_gb": 2.68316650390625
+      },
+      {
+        "env_name": "cartpole",
+        "final_score": 9.435014724731445,
+        "final_steps": 3145728.0,
+        "gpu_percent": 78.0,
+        "hidden_size": 64.0,
+        "log_path": "/home/tommaso/Dev/rddl2puffer/third_party/pufferlib/logs_sweep_native_apr19/cartpole/1776592124045.json",
+        "num_buffers": 1.0123355574905872,
+        "num_layers": 7.021496837027371,
+        "peak_score": 9.435014724731445,
+        "total_agents": 1024.0,
+        "vram_used_gb": 1.85504150390625
+      }
+    ],
+    "success_count_100": 2
+  }
+}

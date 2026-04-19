@@ -1,0 +1,24 @@
+{
+  "delta": {
+    "final_score_gap_native_minus_generated": 2.5654296875,
+    "final_sps_gap_native_minus_generated": 530556.0
+  },
+  "generated": {
+    "env_name": "rddl_cartpole_discrete",
+    "final_score": 194.39657592773438,
+    "final_sps": 6992178.0,
+    "final_steps": 5636096.0,
+    "log_path": "/home/tommaso/Dev/rddl2puffer/third_party/pufferlib/logs/rddl_cartpole_discrete/1776561287592.json",
+    "peak_score": 194.39657592773438,
+    "peak_sps": 7020380.0
+  },
+  "native": {
+    "env_name": "cartpole",
+    "final_score": 196.96200561523438,
+    "final_sps": 7522734.0,
+    "final_steps": 5636096.0,
+    "log_path": "/home/tommaso/Dev/rddl2puffer/third_party/pufferlib/logs/cartpole/1776561459523.json",
+    "peak_score": 197.63221740722656,
+    "peak_sps": 7522734.0
+  }
+}

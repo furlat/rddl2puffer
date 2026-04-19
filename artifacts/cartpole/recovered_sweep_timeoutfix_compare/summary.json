@@ -1,0 +1,130 @@
+{
+  "delta": {
+    "best_final_score_gap": 51.95970153808594,
+    "mean_final_score_gap": 105.43338918685913,
+    "median_final_score_gap": 97.31222152709961,
+    "success_count_100_gap": 0
+  },
+  "generated": {
+    "best_run": {
+      "env_name": "rddl_cartpole_discrete",
+      "final_score": 145.00230407714844,
+      "final_steps": 52428800.0,
+      "gpu_percent": 27.0,
+      "hidden_size": 32.0,
+      "log_path": "third_party/pufferlib/logs_sweep_timeoutfix_generated4/rddl_cartpole_discrete/1776541936029.json",
+      "num_buffers": 4.0,
+      "num_layers": 2.0,
+      "peak_score": 163.58145141601562,
+      "total_agents": 4096.0,
+      "vram_used_gb": 1.86676025390625
+    },
+    "label": "generated_rddl_cartpole",
+    "mean_final_score": 91.52861642837524,
+    "median_final_score": 99.64978408813477,
+    "num_runs": 4,
+    "runs": [
+      {
+        "env_name": "rddl_cartpole_discrete",
+        "final_score": 145.00230407714844,
+        "final_steps": 52428800.0,
+        "gpu_percent": 27.0,
+        "hidden_size": 32.0,
+        "log_path": "third_party/pufferlib/logs_sweep_timeoutfix_generated4/rddl_cartpole_discrete/1776541936029.json",
+        "num_buffers": 4.0,
+        "num_layers": 2.0,
+        "peak_score": 163.58145141601562,
+        "total_agents": 4096.0,
+        "vram_used_gb": 1.86676025390625
+      },
+      {
+        "env_name": "rddl_cartpole_discrete",
+        "final_score": 145.00230407714844,
+        "final_steps": 52428800.0,
+        "gpu_percent": 28.0,
+        "hidden_size": 32.0,
+        "log_path": "third_party/pufferlib/logs_sweep_timeoutfix_generated4/rddl_cartpole_discrete/1776541944968.json",
+        "num_buffers": 4.0,
+        "num_layers": 2.0,
+        "peak_score": 158.42515563964844,
+        "total_agents": 4096.0,
+        "vram_used_gb": 1.86676025390625
+      },
+      {
+        "env_name": "rddl_cartpole_discrete",
+        "final_score": 21.812593460083008,
+        "final_steps": 5242880.0,
+        "gpu_percent": 30.0,
+        "hidden_size": 256.0,
+        "log_path": "third_party/pufferlib/logs_sweep_timeoutfix_generated4/rddl_cartpole_discrete/1776541953546.json",
+        "num_buffers": 5.304262921214104,
+        "num_layers": 2.931907169520855,
+        "peak_score": 22.017534255981445,
+        "total_agents": 512.0,
+        "vram_used_gb": 2.44293212890625
+      },
+      {
+        "env_name": "rddl_cartpole_discrete",
+        "final_score": 54.297264099121094,
+        "final_steps": 5242880.0,
+        "gpu_percent": 89.0,
+        "hidden_size": 128.0,
+        "log_path": "third_party/pufferlib/logs_sweep_timeoutfix_generated4/rddl_cartpole_discrete/1776541970778.json",
+        "num_buffers": 3.4822085611522198,
+        "num_layers": 7.3238753117620945,
+        "peak_score": 61.02978515625,
+        "total_agents": 4096.0,
+        "vram_used_gb": 1.87652587890625
+      }
+    ],
+    "success_count_100": 2
+  },
+  "native": {
+    "best_run": {
+      "env_name": "cartpole",
+      "final_score": 196.96200561523438,
+      "final_steps": 5636096.0,
+      "gpu_percent": 33.0,
+      "hidden_size": 32.0,
+      "log_path": "third_party/pufferlib/logs_sweep_timeoutfix_native4/cartpole/1776541688197.json",
+      "num_buffers": 4.78896,
+      "num_layers": 2.11327,
+      "peak_score": 197.880126953125,
+      "total_agents": 4096.0,
+      "vram_used_gb": 1.86676025390625
+    },
+    "label": "native_cartpole",
+    "mean_final_score": 196.96200561523438,
+    "median_final_score": 196.96200561523438,
+    "num_runs": 2,
+    "runs": [
+      {
+        "env_name": "cartpole",
+        "final_score": 196.96200561523438,
+        "final_steps": 5636096.0,
+        "gpu_percent": 33.0,
+        "hidden_size": 32.0,
+        "log_path": "third_party/pufferlib/logs_sweep_timeoutfix_native4/cartpole/1776541688197.json",
+        "num_buffers": 4.78896,
+        "num_layers": 2.11327,
+        "peak_score": 197.880126953125,
+        "total_agents": 4096.0,
+        "vram_used_gb": 1.86676025390625
+      },
+      {
+        "env_name": "cartpole",
+        "final_score": 196.96200561523438,
+        "final_steps": 5636096.0,
+        "gpu_percent": 33.0,
+        "hidden_size": 32.0,
+        "log_path": "third_party/pufferlib/logs_sweep_timeoutfix_native4/cartpole/1776541691188.json",
+        "num_buffers": 4.78896,
+        "num_layers": 2.11327,
+        "peak_score": 197.65518188476562,
+        "total_agents": 4096.0,
+        "vram_used_gb": 1.86676025390625
+      }
+    ],
+    "success_count_100": 2
+  }
+}

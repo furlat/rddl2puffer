@@ -1,0 +1,144 @@
+Min random sample:
+	train/total_timesteps: 7071067.811865475
+	train/horizon: 32
+	train/minibatch_size: 8192
+	train/learning_rate: 0.0001
+	train/ent_coef: 0.00011892071150027212
+	train/gamma: 0.9700930243755764
+	train/gae_lambda: 0.7750634699238602
+	train/vtrace_rho_clip: 1.3250000000000002
+	train/vtrace_c_clip: 1.3250000000000002
+	train/replay_ratio: 1.1875
+	train/clip_coef: 0.2575
+	train/vf_clip_coef: 1.2575
+	train/vf_coef: 1.3250000000000002
+	train/max_grad_norm: 1.3250000000000002
+	train/beta1: 0.8942628736559435
+	train/beta2: 0.9900000000000113
+	train/eps: 3.1622776601683794e-12
+	train/prio_alpha: 0.25
+	train/prio_beta0: 0.25
+	policy/hidden_size: 64
+	policy/num_layers: 2.75
+	vec/total_agents: 1024
+	vec/num_buffers: 2.75
+Max random sample:
+	train/total_timesteps: 14142135.623730922
+	train/horizon: 256
+	train/minibatch_size: 32768
+	train/learning_rate: 0.01
+	train/ent_coef: 0.01681792830507429
+	train/gamma: 0.9993312596950237
+	train/gae_lambda: 0.9822172058996107
+	train/vtrace_rho_clip: 3.7750000000000004
+	train/vtrace_c_clip: 3.7750000000000004
+	train/replay_ratio: 3.0625
+	train/clip_coef: 0.7525
+	train/vf_clip_coef: 3.7525
+	train/vf_coef: 3.7750000000000004
+	train/max_grad_norm: 3.7750000000000004
+	train/beta1: 0.9952712919549841
+	train/beta2: 0.9999000000000003
+	train/eps: 3.162277660168379e-07
+	train/prio_alpha: 0.75
+	train/prio_beta0: 0.75
+	policy/hidden_size: 512
+	policy/num_layers: 6.25
+	vec/total_agents: 4096
+	vec/num_buffers: 6.25
+[0;0H╭──────────────────────────────────────────────────────────────────────────────╮
+│  PufferLib 4.0 🐡                GPU: 28%      VRAM: 1.9/32G      RAM: 1.0G  │
+│                                                                              │
+│  Summary          Value    Evaluate    88ms  90%    Losses            Value  │
+│  Env       rddl_cartpo…      GPU       59ms  60%    policy           -0.009  │
+│  Params            6.4K      Env        2ms   2%    value             0.045  │
+│  Steps             5.6M    Train        9ms   9%    entropy           0.351  │
+│  SPS               7.9M      Misc       2ms   2%    total             0.058  │
+│  Epoch               43      Forwa…     7ms   7%    old_kl           -0.000  │
+│  Uptime           711ms                             kl                0.000  │
+│  Remaini…           1ms                             clipfrac          0.000  │
+│                                                                              │
+│  User Stats                    Value    User Stats                    Value  │
+│  perf                          0.391    score                       194.397  │
+│  episode_return              193.397    episode_length              194.397  │
+│  x_threshold_terminati…        0.330    pole_angle_termination        0.046  │
+│  max_steps_termination         0.642                                         │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+Detected discrete action space with 1 heads
+Num workers: 4
+Num workers: 4
+Num workers: 4
+Num workers: 4
+[0;0H╭──────────────────────────────────────────────────────────────────────────────╮
+│  PufferLib 4.0 🐡                GPU: 28%      VRAM: 1.9/32G      RAM: 1.0G  │
+│                                                                              │
+│  Summary          Value    Evaluate   101ms  90%    Losses            Value  │
+│  Env       rddl_cartpo…      GPU       67ms  60%    policy           -0.010  │
+│  Params            6.4K      Env        3ms   2%    value             0.046  │
+│  Steps             5.6M    Train       10ms   9%    entropy           0.349  │
+│  SPS               8.0M      Misc       3ms   2%    total             0.059  │
+│  Epoch               43      Forwa…     8ms   7%    old_kl           -0.000  │
+│  Uptime           726ms                             kl                0.000  │
+│  Remaini…           1ms                             clipfrac          0.000  │
+│                                                                              │
+│  User Stats                    Value    User Stats                    Value  │
+│  perf                          0.391    score                       194.397  │
+│  episode_return              193.397    episode_length              194.397  │
+│  x_threshold_terminati…        0.330    pole_angle_termination        0.046  │
+│  max_steps_termination         0.642                                         │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+Detected discrete action space with 1 heads
+Num workers: 4
+Num workers: 4
+Num workers: 4
+Num workers: 4
+[0;0H╭──────────────────────────────────────────────────────────────────────────────╮
+│  PufferLib 4.0 🐡                GPU: 46%      VRAM: 2.2/32G      RAM: 1.0G  │
+│                                                                              │
+│  Summary          Value    Evaluate   264ms  88%    Losses            Value  │
+│  Env       rddl_cartpo…      GPU      216ms  72%    policy           -0.003  │
+│  Params          295.8K      Env        2ms   0%    value             0.006  │
+│  Steps             5.5M    Train       35ms  11%    entropy           0.172  │
+│  SPS             542.1K      Misc       2ms   0%    total             0.010  │
+│  Epoch              167      Forwa…    33ms  10%    old_kl            0.000  │
+│  Uptime     0d 0h 0m 9s                             kl                0.000  │
+│  Remaini…           2ms                             clipfrac          0.000  │
+│                                                                              │
+│  User Stats                    Value    User Stats                    Value  │
+│  perf                          0.041    score                       153.594  │
+│  episode_return              152.594    episode_length              153.594  │
+│  x_threshold_terminati…        0.658    pole_angle_termination        0.348  │
+│  max_steps_termination         0.000                                         │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+Detected discrete action space with 1 heads
+Num workers: 2
+Num workers: 2
+Num workers: 2
+Num workers: 2
+Num workers: 2
+Num workers: 2
+Num workers: 2
+[0;0H╭──────────────────────────────────────────────────────────────────────────────╮
+│  PufferLib 4.0 🐡                GPU: 99%      VRAM: 2.7/32G      RAM: 1.0G  │
+│                                                                              │
+│  Summary          Value    Evaluate    84ms   9%    Losses            Value  │
+│  Env       rddl_cartpo…      GPU       73ms   8%    policy           -0.011  │
+│  Params          591.6K      Env        5ms   0%    value            42.988  │
+│  Steps             4.2M    Train      814ms  90%    entropy           0.664  │
+│  SPS               2.4M      Misc      48ms   5%    total           214.447  │
+│  Epoch                2      Forwa…   766ms  85%    old_kl            0.003  │
+│  Uptime     0d 0h 0m 1s                             kl                0.003  │
+│  Remaini…         639ms                             clipfrac          0.000  │
+│                                                                              │
+│  User Stats                    Value    User Stats                    Value  │
+│  perf                          0.005    score                        15.769  │
+│  episode_return               14.769    episode_length               15.769  │
+│  x_threshold_terminati…        0.000    pole_angle_termination        1.000  │
+│  max_steps_termination         0.000                                         │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+Detected discrete action space with 1 heads
+Num workers: 16

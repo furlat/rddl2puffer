@@ -1,0 +1,31 @@
+{
+  "env_name": "rddl_cartpole_discrete",
+  "final_improvement_vs_random": 20.046133309932124,
+  "final_logged_point": {
+    "agent_steps": 5636096.0,
+    "episode_return": 193.39657592773438,
+    "score": 194.39657592773438
+  },
+  "log_path": "/home/tommaso/Dev/rddl2puffer/third_party/pufferlib/logs_train_rddl_cartpole_parity/rddl_cartpole_discrete/1776558386794.json",
+  "num_points": 4,
+  "peak_improvement_vs_random": 20.180138994978293,
+  "peak_logged_point": {
+    "agent_steps": 5636096.0,
+    "episode_return": 194.6960906982422,
+    "score": 195.6960906982422
+  },
+  "random_baseline": {
+    "episodes": 50000,
+    "max_return": 69.0,
+    "mean_length": 10.69746,
+    "mean_return": 9.69746,
+    "min_return": 4.0,
+    "quantile_05": 4.0,
+    "quantile_25": 6.0,
+    "quantile_50": 8.0,
+    "quantile_75": 12.0,
+    "quantile_95": 21.0,
+    "seed": 123,
+    "stdev_return": 5.657632857335301
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "delta": {
+    "best_run_final_sps_gap": 539636.0,
+    "best_run_peak_sps_gap": 539636.0,
+    "mean_final_sps_gap": -298227.0
+  },
+  "generated_best": {
+    "final_score": 194.39657592773438,
+    "final_sps": 7927417.0,
+    "log_path": "/home/tommaso/Dev/rddl2puffer/third_party/pufferlib/logs_sweep_rddl_cartpole_parity/rddl_cartpole_discrete/1776558530459.json",
+    "mean_sps": 7927329.5,
+    "peak_sps": 7927417.0
+  },
+  "generated_sweep": {
+    "best_final_sps": 8017689.0,
+    "mean_final_sps": 4710285.25,
+    "worst_final_sps": 542087.0
+  },
+  "native_best": {
+    "final_score": 196.96200561523438,
+    "final_sps": 7387781.0,
+    "log_path": "/home/tommaso/Dev/rddl2puffer/third_party/pufferlib/logs_sweep_native_cartpole_parity/cartpole/1776558477593.json",
+    "mean_sps": 7321035.0,
+    "peak_sps": 7387781.0
+  },
+  "native_sweep": {
+    "best_final_sps": 7387781.0,
+    "mean_final_sps": 5008512.25,
+    "worst_final_sps": 900901.0
+  }
+}

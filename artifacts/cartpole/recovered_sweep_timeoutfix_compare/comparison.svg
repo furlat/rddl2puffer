@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="560" viewBox="0 0 1100 560">
+<rect width="100%" height="100%" fill="#fcfcfb" />
+<text x="80" y="28" font-family="monospace" font-size="22" fill="#1f2933">CartPole sweep comparison: native vs generated</text>
+<text x="80" y="46" font-family="monospace" font-size="12" fill="#52606d">Final score per sweep run. Blue = native cartpole, green = generated RDDL CartPole.</text>
+<line x1="80" y1="480.00" x2="1076" y2="480.00" stroke="#d5d8dc" stroke-width="1" />
+<text x="68" y="484.00" text-anchor="end" font-family="monospace" font-size="12" fill="#4a5568">0</text>
+<line x1="80" y1="373.00" x2="1076" y2="373.00" stroke="#d5d8dc" stroke-width="1" />
+<text x="68" y="377.00" text-anchor="end" font-family="monospace" font-size="12" fill="#4a5568">50</text>
+<line x1="80" y1="266.00" x2="1076" y2="266.00" stroke="#d5d8dc" stroke-width="1" />
+<text x="68" y="270.00" text-anchor="end" font-family="monospace" font-size="12" fill="#4a5568">100</text>
+<line x1="80" y1="159.00" x2="1076" y2="159.00" stroke="#d5d8dc" stroke-width="1" />
+<text x="68" y="163.00" text-anchor="end" font-family="monospace" font-size="12" fill="#4a5568">150</text>
+<line x1="80" y1="52.00" x2="1076" y2="52.00" stroke="#d5d8dc" stroke-width="1" />
+<text x="68" y="56.00" text-anchor="end" font-family="monospace" font-size="12" fill="#4a5568">200</text>
+<line x1="80" y1="480" x2="1076" y2="480" stroke="#1f2933" stroke-width="2" />
+<line x1="80" y1="52" x2="80" y2="480" stroke="#1f2933" stroke-width="2" />
+<rect x="107.67" y="58.50" width="110.67" height="421.50" fill="#127fbf" />
+<text x="163.00" y="498.00" text-anchor="middle" font-family="monospace" font-size="10" fill="#4a5568">N1</text>
+<text x="163.00" y="50.50" text-anchor="middle" font-family="monospace" font-size="10" fill="#127fbf">197.0</text>
+<rect x="273.67" y="58.50" width="110.67" height="421.50" fill="#127fbf" />
+<text x="329.00" y="498.00" text-anchor="middle" font-family="monospace" font-size="10" fill="#4a5568">N2</text>
+<text x="329.00" y="50.50" text-anchor="middle" font-family="monospace" font-size="10" fill="#127fbf">197.0</text>
+<rect x="439.67" y="169.70" width="110.67" height="310.30" fill="#0b6e4f" />
+<text x="495.00" y="498.00" text-anchor="middle" font-family="monospace" font-size="10" fill="#4a5568">G1</text>
+<text x="495.00" y="161.70" text-anchor="middle" font-family="monospace" font-size="10" fill="#0b6e4f">145.0</text>
+<rect x="605.67" y="169.70" width="110.67" height="310.30" fill="#0b6e4f" />
+<text x="661.00" y="498.00" text-anchor="middle" font-family="monospace" font-size="10" fill="#4a5568">G2</text>
+<text x="661.00" y="161.70" text-anchor="middle" font-family="monospace" font-size="10" fill="#0b6e4f">145.0</text>
+<rect x="771.67" y="433.32" width="110.67" height="46.68" fill="#0b6e4f" />
+<text x="827.00" y="498.00" text-anchor="middle" font-family="monospace" font-size="10" fill="#4a5568">G3</text>
+<text x="827.00" y="425.32" text-anchor="middle" font-family="monospace" font-size="10" fill="#0b6e4f">21.8</text>
+<rect x="937.67" y="363.80" width="110.67" height="116.20" fill="#0b6e4f" />
+<text x="993.00" y="498.00" text-anchor="middle" font-family="monospace" font-size="10" fill="#4a5568">G4</text>
+<text x="993.00" y="355.80" text-anchor="middle" font-family="monospace" font-size="10" fill="#0b6e4f">54.3</text>
+<text x="550.00" y="548" text-anchor="middle" font-family="monospace" font-size="12" fill="#4a5568">Sweep runs</text>
+<text x="20" y="280.00" transform="rotate(-90 20 280.00)" text-anchor="middle" font-family="monospace" font-size="12" fill="#4a5568">Final score</text>
+</svg>

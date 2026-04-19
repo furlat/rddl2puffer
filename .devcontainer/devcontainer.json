@@ -1,0 +1,29 @@
+{
+  "name": "rddl2puffer + Puffertank",
+  "runArgs": [
+    "--init",
+    "--gpus=all",
+    "--ipc=host",
+    "--cgroupns=host"
+  ],
+  "context": "..",
+  "dockerFile": "../third_party/puffertank/puffertank.dockerfile",
+  "workspaceFolder": "/workspace/rddl2puffer",
+  "mounts": [
+    "source=${localWorkspaceFolder}/third_party/pufferlib,target=/puffertank/pufferlib,type=bind"
+  ],
+  "postCreateCommand": "bash -lc '. /root/.local/bin/env && . /puffertank/venv/bin/activate && uv pip install -e /workspace/rddl2puffer'",
+  "containerEnv": {
+    "RDDL2PUFFER_DIR": "/workspace/rddl2puffer",
+    "PUFFERLIB_DIR": "/puffertank/pufferlib"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance"
+      ]
+    }
+  }
+}
+
