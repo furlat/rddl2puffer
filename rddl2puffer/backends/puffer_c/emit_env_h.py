@@ -14,7 +14,7 @@ from rddl2puffer.backends.puffer_c.emit_helpers import (
     sanitize_c_identifier,
 )
 from rddl2puffer.backends.puffer_c.model import GeneratedEnvSpec, build_env_spec
-from rddl2puffer.ir.nodes import IRProgram
+from rddl2puffer.ir.nodes import IRProgram, NodeOp
 
 
 def emit_env_header(program: IRProgram, env_name: str) -> str:
@@ -100,6 +100,7 @@ def emit_env_header(program: IRProgram, env_name: str) -> str:
     log_struct_fields = _emit_log_struct_fields(spec)
     env_counter_fields = _emit_env_counter_fields(spec)
     log_updates = _emit_add_log_body(spec)
+    sample_helper_block = indent(_emit_sample_helpers(program), " " * 0)
 
     return dedent(
         f"""\
@@ -107,6 +108,7 @@ def emit_env_header(program: IRProgram, env_name: str) -> str:
         #include <math.h>
         #include <stdbool.h>
         #include <stddef.h>
+        #include <stdlib.h>
         #include <stdint.h>
         #include <string.h>
 
@@ -137,6 +139,8 @@ def emit_env_header(program: IRProgram, env_name: str) -> str:
         {_emit_state_struct_fields(spec)}
         {env_counter_fields}
         }} {spec.struct_name};
+
+        {sample_helper_block}
 
         static inline void add_log({spec.struct_name}* env) {{
         {indent(log_updates, " " * 4)}
@@ -312,3 +316,16 @@ def _emit_state_array_seed(spec: GeneratedEnvSpec) -> str:
         f"next_state[{field.slot}] = env->{field.field_name};"
         for field in spec.state_fields
     )
+
+
+def _emit_sample_helpers(program: IRProgram) -> str:
+    if not any(node.op is NodeOp.SAMPLE for node in program.nodes):
+        return ""
+    return dedent(
+        """\
+        static inline float sample_uniform(unsigned int* rng, float low, float high) {
+            float unit = (float)rand_r(rng) / (float)RAND_MAX;
+            return low + (high - low) * unit;
+        }
+        """
+    ).rstrip()

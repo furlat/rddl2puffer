@@ -1,9 +1,10 @@
-"""Deterministic Python interpreter for the RDDL execution IR."""
+"""Python interpreter for the current RDDL execution IR."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 from math import cos, sin
+import random as _random
 from typing import Mapping, Sequence
 
 from rddl2puffer.frontend.schema import Scalar
@@ -37,11 +38,7 @@ def step_ir(
     action: Sequence[Scalar],
     rng: object | None = None,
 ) -> ExecutionResult:
-    """Execute a single deterministic IR step.
-
-    RNG is accepted as a placeholder for future stochastic nodes. The current
-    interpreter raises if the program contains `sample` instructions.
-    """
+    """Execute a single IR step."""
 
     validate_program(program, allow_sample_nodes=True)
 
@@ -107,10 +104,9 @@ def step_ir(
             predicate = bool(values[node.args[0]])
             values[node.node_id] = values[node.args[1]] if predicate else values[node.args[2]]
         elif node.op is NodeOp.SAMPLE:
-            raise NotImplementedError(
-                "RNG-backed sample nodes are reserved for the next milestone. "
-                f"Received rng={rng!r}."
-            )
+            low = float(_as_number(values[node.args[0]]))
+            high = float(_as_number(values[node.args[1]]))
+            values[node.node_id] = _sample_uniform(rng, low, high)
         elif node.op is NodeOp.STORE_NEXT_STATE:
             next_state[node.slot] = values[node.args[0]]  # type: ignore[index]
         elif node.op is NodeOp.STORE_OBS:
@@ -137,3 +133,14 @@ def _as_number(value: Scalar) -> int | float:
     if isinstance(value, (int, float)):
         return value
     raise TypeError(f"Expected a scalar number, got {type(value)!r}")
+
+
+def _sample_uniform(rng: object | None, low: float, high: float) -> float:
+    if rng is None:
+        generator = _random.Random(0)
+        return generator.uniform(low, high)
+    if hasattr(rng, "uniform"):
+        return float(rng.uniform(low, high))
+    if hasattr(rng, "random"):
+        return float(low + (high - low) * rng.random())
+    raise TypeError(f"Unsupported RNG object for SAMPLE nodes: {type(rng)!r}")

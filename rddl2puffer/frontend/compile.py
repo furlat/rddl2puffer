@@ -13,7 +13,6 @@ from rddl2puffer.frontend.parse import ParsedRDDLProgram, parse_rddl_files, pars
 from rddl2puffer.ir.lower import assemble_program
 from rddl2puffer.ir.nodes import CPFNode, IRProgram, NodeOp
 from rddl2puffer.rddl_plus.parser.expr import Expression
-from rddl2puffer.rddl_plus.parser import utils as parser_utils
 
 _DIRECTIVE_PATTERN = re.compile(r"^\s*//%\s*([A-Za-z0-9_.-]+)\s*=\s*(.+?)\s*$")
 
@@ -142,8 +141,7 @@ class _SubsetLowerer:
             self._current_symbols[cpf.name] = self._lower_expression(cpf.expr, self._current_symbols)
 
         for cpf in self.grounded.state_cpfs:
-            base_name = parser_utils.rename_next_state_fluent(cpf.name)
-            self._next_state_symbols[base_name] = self._lower_expression(cpf.expr, self._current_symbols)
+            self._next_state_symbols[cpf.name] = self._lower_expression(cpf.expr, self._current_symbols)
 
         reward_node = self._lower_expression(self.grounded.reward, self._current_symbols)
         done_node = self._lower_terminals()
@@ -228,7 +226,7 @@ class _SubsetLowerer:
         if expr.is_constant_expression():
             return self._emit_const(value=expr.value)
         if expr.is_pvariable_expression():
-            name = expr.name
+            name = _grounded_expr_name(expr)
             try:
                 return symbols[name]
             except KeyError as exc:
@@ -339,9 +337,91 @@ class _SubsetLowerer:
                 args=(inner,),
             )
 
+        if expr_type == ("func", "min"):
+            lhs = self._lower_expression(args[0], symbols)
+            rhs = self._lower_expression(args[1], symbols)
+            return self._emit_cached(
+                NodeOp.MIN,
+                cache_key=(NodeOp.MIN.value, lhs, rhs),
+                node_id=f"min_{self._counter}",
+                args=(lhs, rhs),
+            )
+
+        if expr_type == ("func", "max"):
+            lhs = self._lower_expression(args[0], symbols)
+            rhs = self._lower_expression(args[1], symbols)
+            return self._emit_cached(
+                NodeOp.MAX,
+                cache_key=(NodeOp.MAX.value, lhs, rhs),
+                node_id=f"max_{self._counter}",
+                args=(lhs, rhs),
+            )
+
+        if expr_type == ("func", "abs"):
+            inner = self._lower_expression(args[0], symbols)
+            zero = self._emit_const(value=0.0)
+            is_negative = self._emit_cached(
+                NodeOp.LT,
+                cache_key=(NodeOp.LT.value, inner, zero),
+                node_id=f"abs_lt_{self._counter}",
+                args=(inner, zero),
+            )
+            neg_inner = self._emit_cached(
+                NodeOp.NEG,
+                cache_key=(NodeOp.NEG.value, inner),
+                node_id=f"abs_neg_{self._counter}",
+                args=(inner,),
+            )
+            return self._emit_cached(
+                NodeOp.SELECT,
+                cache_key=(NodeOp.SELECT.value, is_negative, neg_inner, inner),
+                node_id=f"abs_{self._counter}",
+                args=(is_negative, neg_inner, inner),
+            )
+
+        if expr_type == ("func", "sgn"):
+            inner = self._lower_expression(args[0], symbols)
+            zero = self._emit_const(value=0.0)
+            one = self._emit_const(value=1.0)
+            neg_one = self._emit_const(value=-1.0)
+            is_positive = self._emit_cached(
+                NodeOp.GT,
+                cache_key=(NodeOp.GT.value, inner, zero),
+                node_id=f"sgn_gt_{self._counter}",
+                args=(inner, zero),
+            )
+            is_negative = self._emit_cached(
+                NodeOp.LT,
+                cache_key=(NodeOp.LT.value, inner, zero),
+                node_id=f"sgn_lt_{self._counter}",
+                args=(inner, zero),
+            )
+            negative_or_zero = self._emit_cached(
+                NodeOp.SELECT,
+                cache_key=(NodeOp.SELECT.value, is_negative, neg_one, zero),
+                node_id=f"sgn_neg_or_zero_{self._counter}",
+                args=(is_negative, neg_one, zero),
+            )
+            return self._emit_cached(
+                NodeOp.SELECT,
+                cache_key=(NodeOp.SELECT.value, is_positive, one, negative_or_zero),
+                node_id=f"sgn_{self._counter}",
+                args=(is_positive, one, negative_or_zero),
+            )
+
         if expr_type == ("func", "pow"):
             base = self._lower_expression(args[0], symbols)
             return self._lower_pow(base, args[1])
+
+        if expr_type == ("randomvar", "Uniform"):
+            low = self._lower_expression(args[0], symbols)
+            high = self._lower_expression(args[1], symbols)
+            return self._emit(
+                NodeOp.SAMPLE,
+                node_id=f"uniform_{self._counter}",
+                args=(low, high),
+                value="uniform",
+            )
 
         raise NotImplementedError(f"Unsupported RDDL expression in direct compiler: {expr.etype}")
 
@@ -426,10 +506,26 @@ def _sanitize_name(name: str) -> str:
         name.replace("'", "_next")
         .replace("/", "_")
         .replace("-", "_")
+        .replace("[", "_")
+        .replace("]", "_")
         .replace("(", "_")
         .replace(")", "_")
         .replace(",", "_")
     )
+
+
+def _grounded_expr_name(expr: Expression) -> str:
+    functor, params = expr.args
+    if params is None:
+        return str(functor)
+    resolved = []
+    for param in params:
+        if not isinstance(param, str):
+            raise NotImplementedError(f"Unsupported grounded pvariable parameter: {param!r}")
+        if param.startswith("?"):
+            raise NotImplementedError(f"Encountered ungrounded parameter {param!r} during lowering.")
+        resolved.append(param)
+    return f"{functor}[{','.join(resolved)}]"
 
 
 def _merge_metadata_overrides(*values: Mapping[str, object] | None) -> dict[str, object]:

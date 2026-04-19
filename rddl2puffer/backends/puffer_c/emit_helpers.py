@@ -42,6 +42,8 @@ def infer_c_node_values(program: IRProgram) -> dict[str, CNodeValue]:
             inferred[node.node_id] = CNodeValue("bool")
         elif node.op is NodeOp.SELECT:
             inferred[node.node_id] = _infer_select_type(node, inferred)
+        elif node.op is NodeOp.SAMPLE:
+            inferred[node.node_id] = CNodeValue("float")
         elif node.op in {
             NodeOp.STORE_NEXT_STATE,
             NodeOp.STORE_OBS,
@@ -49,8 +51,6 @@ def infer_c_node_values(program: IRProgram) -> dict[str, CNodeValue]:
             NodeOp.STORE_DONE,
         }:
             continue
-        elif node.op is NodeOp.SAMPLE:
-            raise NotImplementedError("Puffer C codegen for SAMPLE nodes is not implemented yet.")
         else:
             raise NotImplementedError(f"Unsupported IR op for C codegen: {node.op}")
     return inferred
@@ -241,6 +241,10 @@ def _emit_node_expr(
         return _emit_logical_expr(node, refs[0], refs[1])
     if node.op is NodeOp.SELECT:
         return f"({refs[0]} ? {refs[1]} : {refs[2]})"
+    if node.op is NodeOp.SAMPLE:
+        if node.value != "uniform":
+            raise NotImplementedError(f"Unsupported SAMPLE distribution for C codegen: {node.value!r}")
+        return f"sample_uniform(&env->rng, {refs[0]}, {refs[1]})"
     raise NotImplementedError(f"Unsupported node expression emission for {node.op}")
 
 

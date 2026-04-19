@@ -52,7 +52,7 @@ class CPFNode:
     node_id: str
     op: NodeOp
     args: tuple[str, ...] = ()
-    value: Scalar | None = None
+    value: object | None = None
     slot: int | None = None
     comment: str | None = None
 

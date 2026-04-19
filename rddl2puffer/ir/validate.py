@@ -32,7 +32,7 @@ _ARITY = {
     NodeOp.AND: 2,
     NodeOp.OR: 2,
     NodeOp.SELECT: 3,
-    NodeOp.SAMPLE: 0,
+    NodeOp.SAMPLE: 2,
     NodeOp.STORE_NEXT_STATE: 1,
     NodeOp.STORE_OBS: 1,
     NodeOp.STORE_REWARD: 1,
