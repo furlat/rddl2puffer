@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Mapping
 
 from rddl2puffer.ir.nodes import CPFNode, IRProgram, NodeOp
 
@@ -69,7 +70,12 @@ def sanitize_c_identifier(value: str) -> str:
     return text
 
 
-def emit_c_value_declarations(program: IRProgram, inferred: dict[str, CNodeValue]) -> str:
+def emit_c_value_declarations(
+    program: IRProgram,
+    inferred: dict[str, CNodeValue],
+    *,
+    state_targets: Mapping[int, str] | None = None,
+) -> str:
     """Emit C local variable declarations for each non-store node."""
 
     lines: list[str] = []
@@ -78,23 +84,42 @@ def emit_c_value_declarations(program: IRProgram, inferred: dict[str, CNodeValue
             continue
         info = inferred[node.node_id]
         name = node_var_name(index, node.node_id)
-        expr = _emit_node_expr(program, node)
+        expr = _emit_node_expr(program, node, state_targets=state_targets)
         comment = f" // {node.comment}" if node.comment else ""
         lines.append(f"{info.ctype} {name} = {expr};{comment}")
     return "\n".join(lines)
 
 
-def emit_c_store_statements(program: IRProgram) -> str:
+def emit_c_store_statements(
+    program: IRProgram,
+    *,
+    next_state_targets: Mapping[int, str] | None = None,
+    observation_targets: Mapping[int, str] | None = None,
+) -> str:
     """Emit C assignments for next-state, observation, reward, and done outputs."""
 
     lines: list[str] = []
     for index, node in enumerate(program.nodes):
         if node.op is NodeOp.STORE_NEXT_STATE:
             source = lookup_var_name(program, node.args[0])
-            lines.append(f"next_state[{node.slot}] = {source};")
+            if node.slot is None:
+                raise ValueError("STORE_NEXT_STATE node is missing a slot.")
+            target = (
+                next_state_targets[node.slot]
+                if next_state_targets is not None
+                else f"next_state[{node.slot}]"
+            )
+            lines.append(f"{target} = {source};")
         elif node.op is NodeOp.STORE_OBS:
             source = lookup_var_name(program, node.args[0])
-            lines.append(f"obs[{node.slot}] = {source};")
+            if node.slot is None:
+                raise ValueError("STORE_OBS node is missing a slot.")
+            target = (
+                observation_targets[node.slot]
+                if observation_targets is not None
+                else f"obs[{node.slot}]"
+            )
+            lines.append(f"{target} = {source};")
         elif node.op is NodeOp.STORE_REWARD:
             source = lookup_var_name(program, node.args[0])
             lines.append(f"reward = (float)({source});")
@@ -177,7 +202,12 @@ def _infer_select_type(node: CPFNode, inferred: dict[str, CNodeValue]) -> CNodeV
     return CNodeValue(ctype=ctype)
 
 
-def _emit_node_expr(program: IRProgram, node: CPFNode) -> str:
+def _emit_node_expr(
+    program: IRProgram,
+    node: CPFNode,
+    *,
+    state_targets: Mapping[int, str] | None = None,
+) -> str:
     refs = [lookup_var_name(program, arg) for arg in node.args]
     if node.op is NodeOp.CONST:
         if isinstance(node.value, bool):
@@ -188,6 +218,10 @@ def _emit_node_expr(program: IRProgram, node: CPFNode) -> str:
             return _float_literal(node.value)
         raise TypeError(f"Unsupported const literal type: {type(node.value)!r}")
     if node.op is NodeOp.LOAD_STATE:
+        if node.slot is None:
+            raise ValueError("LOAD_STATE node is missing a slot.")
+        if state_targets is not None:
+            return state_targets[node.slot]
         return f"env->state[{node.slot}]"
     if node.op is NodeOp.LOAD_ACTION:
         return action_var_name(int(node.slot))

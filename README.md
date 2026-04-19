@@ -8,22 +8,14 @@ For a supported RDDL model, this repository can:
 
 1. parse the input `.rddl` files,
 2. build a flat schema for state, action, and observation variables,
-3. lower supported CPFs into an intermediate representation (IR),
+3. lower supported CPFs into generated native step/reset code,
 4. emit Ocean/C and `.ini` files into a local `PufferLib` checkout,
 5. build the generated environment with native Puffer tooling,
 6. train or sweep the generated environment against an existing upstream native PufferLib environment.
 
-## Terms Used In This Repo
-
-- Input RDDL: the `.rddl` files under `examples/`
-- Compiler or transpiler: the Python code under `rddl2puffer/`
-- Generated environment: emitted files such as `third_party/pufferlib/ocean/rddl_cartpole_discrete/*`
-- Existing upstream native environment: pre-existing C/Ocean code already in `third_party/pufferlib/ocean/cartpole/*`
-- Python reference runtime: a semantic checker used for debugging; the generated-vs-native sweeps run native Puffer on C/Ocean code, not on a Python wrapper
-
 ## Current End-To-End Example
 
-The clearest end-to-end path today is discrete CartPole:
+The clearest end-to-end path today is source-driven discrete CartPole:
 
 - Input RDDL:
   `examples/rddl_plus/cartpole_puffer_parity/domain.rddl`
@@ -33,23 +25,46 @@ The clearest end-to-end path today is discrete CartPole:
   `third_party/pufferlib/ocean/rddl_cartpole_discrete/`
 - Existing upstream native CartPole implementation:
   `third_party/pufferlib/ocean/cartpole/`
-- Fresh generated-vs-native sweep artifacts:
-  `artifacts/cartpole/verify_sweep_20260419/`
+- Current sweep parity artifacts:
+  `artifacts/cartpole/source_apr19_sweep_compare/`
+- Current reward-vs-random artifacts:
+  `artifacts/cartpole/source_directives_vs_random/`
 
 Useful entry points:
 
 - [CartPole side-by-side comparison](docs/cartpole_side_by_side.md)
-- [Fresh generated-vs-native sweep plot](artifacts/cartpole/verify_sweep_20260419/comparison.svg)
-- [Fresh generated-vs-native sweep summary](artifacts/cartpole/verify_sweep_20260419/report.md)
+- [Current generated-vs-native sweep plot](artifacts/cartpole/source_apr19_sweep_compare/comparison.svg)
+- [Current generated-vs-native sweep summary](artifacts/cartpole/source_apr19_sweep_compare/report.md)
+- [Current reward-vs-random report](artifacts/cartpole/source_directives_vs_random/report.md)
+
+## Current CartPole Status
+
+The runnable CartPole path is now source-driven from RDDL files. There is no handwritten Python environment specification on the runnable path.
+
+Current checkpoints worth knowing:
+
+- Generated env source:
+  `examples/rddl_plus/cartpole_puffer_parity/`
+- Generated Ocean/C output:
+  `third_party/pufferlib/ocean/rddl_cartpole_discrete/`
+- Upstream native comparison target:
+  `third_party/pufferlib/ocean/cartpole/`
+- Latest compiled-source single-run result:
+  `194.397` score at `7.807M SPS`
+- Latest native single-run reference:
+  `196.962` score at `7.523M SPS`
+- Current 4-run sweep snapshot:
+  generated mean final score `101.818`, native mean final score `103.560`
+
+This means the current deterministic-reset CartPole compiler path is already close enough to do real native generated-vs-handwritten comparisons on both training outcome and throughput.
 
 ## Current Scope
 
-This is not yet a full general RDDL compiler. The strongest path today is the deterministic scalar subset used in the CartPole experiment:
+This is not yet a full general RDDL compiler. The strongest path today is the deterministic scalar subset exercised by the CartPole parity experiment:
 
 - direct RDDL parsing,
 - schema construction,
-- IR lowering and validation,
-- Python IR execution for debugging,
+- lowering into generated native update code,
 - Ocean/C emission,
 - Puffer build and sweep integration.
 
@@ -58,6 +73,18 @@ Still incomplete:
 - full general grounding coverage,
 - stochastic RDDL support end to end,
 - broader domain coverage beyond the current CartPole-focused workflow.
+
+The main missing semantic feature for exact native CartPole parity is stochastic `init-state`. The current source-driven CartPole example uses deterministic reset because that feature is not implemented yet.
+
+## Ocean <-> RDDL Crossovers
+
+The exact local environment-name overlap between `third_party/pufferlib/ocean/` and `third_party/rddlrepository/rddlrepository/archive/` is currently:
+
+- `cartpole`
+- `pong`
+- `tetris`
+
+`CartPole` is the first completed source-driven target. `Pong` is the best second target candidate because it exists in both codebases and is much smaller than `Tetris`, which is a significantly heavier systems and codegen problem.
 
 ## Quickstart
 
@@ -132,7 +159,7 @@ PY
 
 cd /puffertank/pufferlib
 bash build.sh rddl_cartpole_discrete
-puffer sweep rddl_cartpole_discrete
+puffer sweep rddl_cartpole_discrete --sweep.use-gpu False --sweep.gpus 1
 ```
 
 ## Project Layout

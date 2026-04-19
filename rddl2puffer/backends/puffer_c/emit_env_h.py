@@ -22,19 +22,34 @@ def emit_env_header(program: IRProgram, env_name: str) -> str:
 
     spec = build_env_spec(program, env_name)
     inferred = infer_c_node_values(program)
-    declarations = emit_c_value_declarations(program, inferred)
-    stores = emit_c_store_statements(program)
+    state_targets = {field.slot: f"env->{field.field_name}" for field in spec.state_fields}
+    declarations = emit_c_value_declarations(program, inferred, state_targets=state_targets)
+    next_state_targets = (
+        {field.slot: f"next_{field.field_name}" for field in spec.state_fields}
+        if spec.state_slots_fully_overwritten
+        else None
+    )
+    observation_targets = (
+        {slot: f"env->observations[{slot}]" for slot in range(program.observation_layout.total_size)}
+        if spec.observation_slots_fully_overwritten
+        else None
+    )
+    stores = emit_c_store_statements(
+        program,
+        next_state_targets=next_state_targets,
+        observation_targets=observation_targets,
+    )
     action_sanitizers = _emit_action_sanitizers(spec)
     counter_captures = _emit_counter_captures(program, spec)
     reward_postprocess = _emit_reward_postprocess(spec)
     reset_state = "\n".join(
-        f"env->state[{index}] = {_float_literal(value)};"
-        for index, value in enumerate(spec.initial_state)
+        f"env->{field.field_name} = {_float_literal(field.default_value)};"
+        for field in spec.state_fields
     )
     reset_obs = "\n".join(
         (
-            f"env->observations[{item.observation_slot}] = env->state[{item.state_slot}];"
-            if item.state_slot is not None
+            f"env->observations[{item.observation_slot}] = env->{item.state_field_name};"
+            if item.state_field_name is not None
             else f"env->observations[{item.observation_slot}] = {_float_literal(item.default_value)};"
         )
         for item in spec.reset_observations
@@ -51,6 +66,37 @@ def emit_env_header(program: IRProgram, env_name: str) -> str:
     stores_block = indent(stores, " " * 8) if stores else ""
     reward_block = indent(reward_postprocess, " " * 8) if reward_postprocess else ""
     counter_capture_block = indent(counter_captures, " " * 8) if counter_captures else ""
+    state_scratch_block = indent(
+        _emit_next_state_scratch(program, spec),
+        " " * 8,
+    ) if spec.state_slots_fully_overwritten else ""
+    reset_obs_init = (
+        ""
+        if spec.reset_observation_slots_fully_overwritten
+        else f"memset(env->observations, 0, sizeof(float) * {spec.prefix}_OBS_SIZE);"
+    )
+    reset_obs_init_block = indent(reset_obs_init, " " * 8) if reset_obs_init else ""
+    step_state_setup = (
+        ""
+        if spec.state_slots_fully_overwritten
+        else _emit_state_array_seed(spec)
+    )
+    step_obs_setup = (
+        ""
+        if spec.observation_slots_fully_overwritten
+        else "memset(obs, 0, sizeof(obs));"
+    )
+    step_state_setup_block = indent(step_state_setup, " " * 8) if step_state_setup else ""
+    step_obs_setup_block = indent(step_obs_setup, " " * 8) if step_obs_setup else ""
+    state_commit_block = indent(_emit_state_commit(program, spec), " " * 8)
+    observation_commit_block = (
+        indent(
+            f"memcpy(env->observations, obs, sizeof(obs));",
+            " " * 8,
+        )
+        if not spec.observation_slots_fully_overwritten
+        else ""
+    )
     log_struct_fields = _emit_log_struct_fields(spec)
     env_counter_fields = _emit_env_counter_fields(spec)
     log_updates = _emit_add_log_body(spec)
@@ -88,7 +134,7 @@ def emit_env_header(program: IRProgram, env_name: str) -> str:
             int tick;
             float episode_return;
             unsigned int rng;
-            float state[{spec.prefix}_STATE_SIZE];
+        {_emit_state_struct_fields(spec)}
         {env_counter_fields}
         }} {spec.struct_name};
 
@@ -100,21 +146,21 @@ def emit_env_header(program: IRProgram, env_name: str) -> str:
             env->tick = 0;
             env->episode_return = 0.0f;
         {reset_state_block}
-            memset(env->observations, 0, sizeof(float) * {spec.prefix}_OBS_SIZE);
+        {reset_obs_init_block}
         {reset_obs_block}
         {reset_log_block}
         }}
 
         static inline void c_step({spec.struct_name}* env) {{
-            float next_state[{spec.prefix}_STATE_SIZE];
-            float obs[{spec.prefix}_OBS_SIZE];
+        {_emit_step_buffer_declarations(program, spec)}
             float reward = 0.0f;
             bool terminated = false;
             bool truncated = false;
             bool done = false;
 
-            memcpy(next_state, env->state, sizeof(next_state));
-            memset(obs, 0, sizeof(obs));
+        {state_scratch_block}
+        {step_state_setup_block}
+        {step_obs_setup_block}
             env->tick += 1;
         {action_block}
         {declarations_block}
@@ -123,8 +169,8 @@ def emit_env_header(program: IRProgram, env_name: str) -> str:
             done = terminated || truncated;
         {reward_block}
         {counter_capture_block}
-            memcpy(env->state, next_state, sizeof(next_state));
-            memcpy(env->observations, obs, sizeof(obs));
+        {state_commit_block}
+        {observation_commit_block}
             env->rewards[0] = reward;
             env->terminals[0] = terminated ? 1.0f : 0.0f;
             env->episode_return += reward;
@@ -227,3 +273,42 @@ def _counter_source_expr(program: IRProgram, source: str) -> str:
 
 def _last_counter_field(name: str) -> str:
     return f"last_{sanitize_c_identifier(name)}"
+
+
+def _emit_step_buffer_declarations(program: IRProgram, spec: GeneratedEnvSpec) -> str:
+    lines: list[str] = []
+    if not spec.state_slots_fully_overwritten:
+        lines.append(f"float next_state[{spec.prefix}_STATE_SIZE];")
+    if not spec.observation_slots_fully_overwritten:
+        lines.append(f"float obs[{spec.prefix}_OBS_SIZE];")
+    return "\n".join(lines)
+
+
+def _emit_next_state_scratch(program: IRProgram, spec: GeneratedEnvSpec) -> str:
+    return "\n".join(
+        f"float next_{field.field_name};"
+        for field in spec.state_fields
+    )
+
+
+def _emit_state_commit(program: IRProgram, spec: GeneratedEnvSpec) -> str:
+    if spec.state_slots_fully_overwritten:
+        return "\n".join(
+            f"env->{field.field_name} = next_{field.field_name};"
+            for field in spec.state_fields
+        )
+    return "\n".join(
+        f"env->{field.field_name} = next_state[{field.slot}];"
+        for field in spec.state_fields
+    )
+
+
+def _emit_state_struct_fields(spec: GeneratedEnvSpec) -> str:
+    return "\n" + "\n".join(f"    float {field.field_name};" for field in spec.state_fields)
+
+
+def _emit_state_array_seed(spec: GeneratedEnvSpec) -> str:
+    return "\n".join(
+        f"next_state[{field.slot}] = env->{field.field_name};"
+        for field in spec.state_fields
+    )

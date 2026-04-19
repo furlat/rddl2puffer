@@ -6,7 +6,8 @@ from dataclasses import dataclass
 from typing import Mapping
 
 from rddl2puffer.frontend.schema import FluentDType, FluentSpec
-from rddl2puffer.ir.nodes import IRProgram
+from rddl2puffer.ir.nodes import IRProgram, NodeOp
+from rddl2puffer.backends.puffer_c.emit_helpers import sanitize_c_identifier
 
 
 @dataclass(frozen=True, slots=True)
@@ -31,12 +32,22 @@ class LogCounterSpec:
 
 
 @dataclass(frozen=True, slots=True)
+class StateFieldSpec:
+    """Named scalar storage field for one state fluent."""
+
+    name: str
+    field_name: str
+    slot: int
+    default_value: float
+
+
+@dataclass(frozen=True, slots=True)
 class ResetObservationSpec:
     """How one observation slot should be initialized on reset."""
 
     observation_name: str
     observation_slot: int
-    state_slot: int | None
+    state_field_name: str | None
     default_value: float
 
 
@@ -48,6 +59,7 @@ class GeneratedEnvSpec:
     struct_name: str
     prefix: str
     action_heads: tuple[ActionHeadSpec, ...]
+    state_fields: tuple[StateFieldSpec, ...]
     initial_state: tuple[float, ...]
     reset_observations: tuple[ResetObservationSpec, ...]
     horizon: int
@@ -56,6 +68,9 @@ class GeneratedEnvSpec:
     score_mode: str
     perf_mode: str
     log_counters: tuple[LogCounterSpec, ...]
+    state_slots_fully_overwritten: bool
+    observation_slots_fully_overwritten: bool
+    reset_observation_slots_fully_overwritten: bool
     observation_tensor_type: str = "FloatTensor"
 
     @property
@@ -75,22 +90,37 @@ def build_env_spec(program: IRProgram, env_name: str) -> GeneratedEnvSpec:
     state_by_name = {
         fluent.qualified_name: fluent.flat_index for fluent in program.state_layout.fluents
     }
+    state_field_specs = tuple(_build_state_fields(program.state_layout.fluents))
+    state_field_names = {field.name: field.field_name for field in state_field_specs}
     reset_observations: list[ResetObservationSpec] = []
     for fluent in program.observation_layout.fluents:
         if fluent.flat_index is None:
             raise ValueError(f"Observation fluent {fluent.qualified_name} is missing a flat index.")
-        state_slot = state_by_name.get(fluent.qualified_name)
         reset_observations.append(
             ResetObservationSpec(
                 observation_name=fluent.qualified_name,
                 observation_slot=fluent.flat_index,
-                state_slot=state_slot,
+                state_field_name=state_field_names.get(fluent.qualified_name),
                 default_value=float(fluent.default),
             )
         )
 
     action_heads = tuple(_build_action_head(fluent) for fluent in program.action_layout.fluents)
     initial_state = tuple(float(fluent.default) for fluent in program.state_layout.fluents)
+    state_slots_fully_overwritten = _stores_cover_all_slots(
+        program,
+        NodeOp.STORE_NEXT_STATE,
+        program.state_layout.total_size,
+    )
+    observation_slots_fully_overwritten = _stores_cover_all_slots(
+        program,
+        NodeOp.STORE_OBS,
+        program.observation_layout.total_size,
+    )
+    reset_observation_slots_fully_overwritten = _reset_observations_cover_all_slots(
+        reset_observations,
+        program.observation_layout.total_size,
+    )
 
     horizon = int(program.metadata.get("horizon", 0))
     discount = float(program.metadata.get("discount", 1.0))
@@ -102,6 +132,7 @@ def build_env_spec(program: IRProgram, env_name: str) -> GeneratedEnvSpec:
         struct_name=_camel_case(env_name),
         prefix=env_name.upper(),
         action_heads=action_heads,
+        state_fields=state_field_specs,
         initial_state=initial_state,
         reset_observations=tuple(reset_observations),
         horizon=horizon,
@@ -110,6 +141,9 @@ def build_env_spec(program: IRProgram, env_name: str) -> GeneratedEnvSpec:
         score_mode=str(logging.get("score_mode", "episode_return")),
         perf_mode=str(logging.get("perf_mode", "episode_return_div_horizon")),
         log_counters=_parse_log_counters(logging),
+        state_slots_fully_overwritten=state_slots_fully_overwritten,
+        observation_slots_fully_overwritten=observation_slots_fully_overwritten,
+        reset_observation_slots_fully_overwritten=reset_observation_slots_fully_overwritten,
     )
 
 
@@ -160,6 +194,56 @@ def _mapping_metadata(value: object) -> Mapping[str, object]:
     if isinstance(value, Mapping):
         return value
     return {}
+
+
+def _build_state_fields(fluents: tuple[FluentSpec, ...]) -> list[StateFieldSpec]:
+    reserved = {
+        "log",
+        "observations",
+        "actions",
+        "rewards",
+        "terminals",
+        "num_agents",
+        "tick",
+        "episode_return",
+        "rng",
+    }
+    used: set[str] = set(reserved)
+    fields: list[StateFieldSpec] = []
+    for fluent in fluents:
+        if fluent.flat_index is None:
+            raise ValueError(f"State fluent {fluent.qualified_name} is missing a flat index.")
+        base = sanitize_c_identifier(fluent.qualified_name)
+        if not base:
+            base = f"state_{fluent.flat_index}"
+        candidate = base
+        suffix = 1
+        while candidate in used:
+            suffix += 1
+            candidate = f"{base}_{suffix}"
+        used.add(candidate)
+        fields.append(
+            StateFieldSpec(
+                name=fluent.qualified_name,
+                field_name=candidate,
+                slot=fluent.flat_index,
+                default_value=float(fluent.default),
+            )
+        )
+    return fields
+
+
+def _stores_cover_all_slots(program: IRProgram, op: NodeOp, total_size: int) -> bool:
+    covered = {node.slot for node in program.nodes if node.op is op and node.slot is not None}
+    return covered == set(range(total_size))
+
+
+def _reset_observations_cover_all_slots(
+    reset_observations: list[ResetObservationSpec],
+    total_size: int,
+) -> bool:
+    covered = {item.observation_slot for item in reset_observations}
+    return covered == set(range(total_size))
 
 
 def _parse_log_counters(logging: Mapping[str, object]) -> tuple[LogCounterSpec, ...]:

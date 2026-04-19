@@ -84,6 +84,7 @@ class _SubsetLowerer:
     grounded: GroundedRDDLModel
     _nodes: list[CPFNode] = field(init=False)
     _counter: int = field(init=False)
+    _value_cache: dict[tuple[object, ...], str] = field(init=False)
     _current_symbols: dict[str, str] = field(init=False)
     _next_state_symbols: dict[str, str] = field(init=False)
     _observation_symbols: dict[str, str] = field(init=False)
@@ -94,6 +95,7 @@ class _SubsetLowerer:
     def __post_init__(self) -> None:
         object.__setattr__(self, "_nodes", [])
         object.__setattr__(self, "_counter", 0)
+        object.__setattr__(self, "_value_cache", {})
         object.__setattr__(self, "_current_symbols", {})
         object.__setattr__(self, "_next_state_symbols", {})
         object.__setattr__(self, "_observation_symbols", {})
@@ -214,8 +216,9 @@ class _SubsetLowerer:
         lowered = [self._lower_expression(expr, terminal_symbols) for expr in self.grounded.terminals]
         result = lowered[0]
         for index, node_id in enumerate(lowered[1:], start=1):
-            result = self._emit(
+            result = self._emit_cached(
                 NodeOp.OR,
+                cache_key=(NodeOp.OR.value, result, node_id),
                 node_id=f"terminal_or_{index}",
                 args=(result, node_id),
             )
@@ -239,15 +242,30 @@ class _SubsetLowerer:
             predicate = self._lower_expression(args[0], symbols)
             when_true = self._lower_expression(args[1], symbols)
             when_false = self._lower_expression(args[2], symbols)
-            return self._emit(NodeOp.SELECT, node_id=f"select_{self._counter}", args=(predicate, when_true, when_false))
+            return self._emit_cached(
+                NodeOp.SELECT,
+                cache_key=(NodeOp.SELECT.value, predicate, when_true, when_false),
+                node_id=f"select_{self._counter}",
+                args=(predicate, when_true, when_false),
+            )
 
         if expr_type == ("arithmetic", "-") and len(args) == 1:
             inner = self._lower_expression(args[0], symbols)
-            return self._emit(NodeOp.NEG, node_id=f"neg_{self._counter}", args=(inner,))
+            return self._emit_cached(
+                NodeOp.NEG,
+                cache_key=(NodeOp.NEG.value, inner),
+                node_id=f"neg_{self._counter}",
+                args=(inner,),
+            )
 
         if expr_type == ("boolean", "~"):
             inner = self._lower_expression(args[0], symbols)
-            return self._emit(NodeOp.NOT, node_id=f"not_{self._counter}", args=(inner,))
+            return self._emit_cached(
+                NodeOp.NOT,
+                cache_key=(NodeOp.NOT.value, inner),
+                node_id=f"not_{self._counter}",
+                args=(inner,),
+            )
 
         if expr_type in {("arithmetic", "+"), ("arithmetic", "-"), ("arithmetic", "*"), ("arithmetic", "/")}:
             lhs = self._lower_expression(args[0], symbols)
@@ -258,17 +276,32 @@ class _SubsetLowerer:
                 "*": NodeOp.MUL,
                 "/": NodeOp.DIV,
             }[operator]
-            return self._emit(op, node_id=f"{op.value}_{self._counter}", args=(lhs, rhs))
+            return self._emit_cached(
+                op,
+                cache_key=(op.value, lhs, rhs),
+                node_id=f"{op.value}_{self._counter}",
+                args=(lhs, rhs),
+            )
 
         if expr_type == ("boolean", "|"):
             lhs = self._lower_expression(args[0], symbols)
             rhs = self._lower_expression(args[1], symbols)
-            return self._emit(NodeOp.OR, node_id=f"or_{self._counter}", args=(lhs, rhs))
+            return self._emit_cached(
+                NodeOp.OR,
+                cache_key=(NodeOp.OR.value, lhs, rhs),
+                node_id=f"or_{self._counter}",
+                args=(lhs, rhs),
+            )
 
         if expr_type in {("boolean", "^"), ("boolean", "&")}:
             lhs = self._lower_expression(args[0], symbols)
             rhs = self._lower_expression(args[1], symbols)
-            return self._emit(NodeOp.AND, node_id=f"and_{self._counter}", args=(lhs, rhs))
+            return self._emit_cached(
+                NodeOp.AND,
+                cache_key=(NodeOp.AND.value, lhs, rhs),
+                node_id=f"and_{self._counter}",
+                args=(lhs, rhs),
+            )
 
         if etype == "relational":
             lhs = self._lower_expression(args[0], symbols)
@@ -281,15 +314,30 @@ class _SubsetLowerer:
                 "==": NodeOp.EQ,
                 "~=": NodeOp.NE,
             }[operator]
-            return self._emit(op, node_id=f"{op.value}_{self._counter}", args=(lhs, rhs))
+            return self._emit_cached(
+                op,
+                cache_key=(op.value, lhs, rhs),
+                node_id=f"{op.value}_{self._counter}",
+                args=(lhs, rhs),
+            )
 
         if expr_type == ("func", "sin"):
             inner = self._lower_expression(args[0], symbols)
-            return self._emit(NodeOp.SIN, node_id=f"sin_{self._counter}", args=(inner,))
+            return self._emit_cached(
+                NodeOp.SIN,
+                cache_key=(NodeOp.SIN.value, inner),
+                node_id=f"sin_{self._counter}",
+                args=(inner,),
+            )
 
         if expr_type == ("func", "cos"):
             inner = self._lower_expression(args[0], symbols)
-            return self._emit(NodeOp.COS, node_id=f"cos_{self._counter}", args=(inner,))
+            return self._emit_cached(
+                NodeOp.COS,
+                cache_key=(NodeOp.COS.value, inner),
+                node_id=f"cos_{self._counter}",
+                args=(inner,),
+            )
 
         if expr_type == ("func", "pow"):
             base = self._lower_expression(args[0], symbols)
@@ -317,15 +365,22 @@ class _SubsetLowerer:
 
         result = base_node
         for index in range(exponent - 1):
-            result = self._emit(
+            result = self._emit_cached(
                 NodeOp.MUL,
+                cache_key=(NodeOp.MUL.value, result, base_node),
                 node_id=f"pow_mul_{self._counter}_{index}",
                 args=(result, base_node),
             )
         return result
 
     def _emit_const(self, value: object, node_id: str | None = None) -> str:
-        return self._emit(NodeOp.CONST, node_id=node_id or f"const_{self._counter}", value=value)
+        cache_key = (NodeOp.CONST.value, type(value).__name__, value)
+        return self._emit_cached(
+            NodeOp.CONST,
+            cache_key=cache_key,
+            node_id=node_id or f"const_{self._counter}",
+            value=value,
+        )
 
     def _emit(
         self,
@@ -339,6 +394,24 @@ class _SubsetLowerer:
         self._nodes.append(CPFNode(node_id=node_id, op=op, args=args, value=value, slot=slot))
         self._counter += 1
         return node_id
+
+    def _emit_cached(
+        self,
+        op: NodeOp,
+        *,
+        cache_key: tuple[object, ...],
+        node_id: str,
+        args: tuple[str, ...] = (),
+        value: object | None = None,
+        slot: int | None = None,
+    ) -> str:
+        existing = self._value_cache.get(cache_key)
+        if existing is not None:
+            return existing
+
+        emitted = self._emit(op, node_id=node_id, args=args, value=value, slot=slot)
+        self._value_cache[cache_key] = emitted
+        return emitted
 
     @staticmethod
     def _require_slot(slots: Mapping[str, int | None], canonical_name: str, label: str) -> int:
