@@ -62,3 +62,22 @@ def test_step_ir_supports_uniform_sample_nodes() -> None:
     assert len(result.next_state) == 5
     assert len(result.observation) == 5
     assert isinstance(result.reward, float)
+
+
+def test_compile_pong_puffer_parity_domain_and_emit_reset_observations() -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+    domain_path = repo_root / "examples" / "rddl_plus" / "pong_puffer_parity" / "domain.rddl"
+    instance_path = domain_path.with_name("instance_deterministic_reset.rddl")
+
+    program = compile_rddl_files(domain_path, instance_path, env_name="rddl_pong_parity")
+
+    assert program.state_layout.total_size == 8
+    assert program.observation_layout.total_size == 8
+    assert program.metadata["runtime_semantics"]["reset_tick_on"] == "$reward_nonzero"
+
+    bundle = render_env_bundle(program, env_name="rddl_pong_parity")
+    header = bundle["ocean/rddl_pong_parity/rddl_pong_parity.h"]
+    assert "env->observations[0] = 0.5f;" in header
+    assert "env->observations[2] = 0.2f;" in header
+    assert "if (!done && (reward != 0.0f ? 1.0f : 0.0f)) { env->tick = 0; }" in header
+    assert "env->log.perf += perf_den > 0.0f ? (env->score_r) / perf_den : 0.0f;" in header

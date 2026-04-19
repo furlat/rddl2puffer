@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import random
 from typing import Mapping, Sequence
 
 from rddl2puffer.frontend.schema import FluentSpec, LayoutSpec, Scalar
@@ -18,9 +19,10 @@ class CompiledProgramReferenceEnv(ReferenceEnv):
         self._horizon = int(program.metadata.get("horizon", 0))
         self._state = _initial_state(program.state_layout)
         self._step_count = 0
+        self._rng = random.Random(0)
 
     def reset(self, seed: int | None = None) -> ResetResult:
-        del seed
+        self._rng = random.Random(0 if seed is None else seed)
         self._state = _initial_state(self._program.state_layout)
         self._step_count = 0
         return ResetResult(
@@ -34,7 +36,7 @@ class CompiledProgramReferenceEnv(ReferenceEnv):
         )
 
     def step(self, action: Sequence[Scalar]) -> Transition:
-        result = step_ir(self._program, state=self._state, action=action)
+        result = step_ir(self._program, state=self._state, action=action, rng=self._rng)
         proposed_state = result.next_state
         self._step_count += 1
 

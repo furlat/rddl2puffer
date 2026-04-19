@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from typing import Any, Mapping, Sequence
 
 import pyRDDLGym
+from pyRDDLGym.core.compiler.model import RDDLPlanningModel
 
 from rddl2puffer.frontend.schema import EnvSchema, FluentDType, FluentSpec, Scalar
 from rddl2puffer.testing.differential import ReferenceEnv, ResetResult, Transition
@@ -82,7 +83,7 @@ class PyRDDLGymReferenceEnv(ReferenceEnv):
             slot = fluent.flat_index
             if slot is None:
                 raise ValueError(f"Action fluent {fluent.qualified_name} is missing a flat index.")
-            action_dict[fluent.name] = _coerce_scalar(action[slot], fluent.dtype)
+            action_dict[_reference_key(fluent)] = _coerce_scalar(action[slot], fluent.dtype)
         return action_dict
 
     def _build_hidden_state(self, *, terminated: bool, truncated: bool) -> Mapping[str, object]:
@@ -115,7 +116,7 @@ class PyRDDLGymReferenceEnv(ReferenceEnv):
                 raise NotImplementedError(
                     "The pyRDDLGym adapter currently supports only scalar state and observation fluents."
                 )
-            raw_value = values[fluent.name]
+            raw_value = values[_reference_key(fluent)]
             flattened.append(
                 FlatValue(
                     spec=fluent,
@@ -123,6 +124,12 @@ class PyRDDLGymReferenceEnv(ReferenceEnv):
                 )
             )
         return tuple(flattened)
+
+
+def _reference_key(fluent: FluentSpec) -> str:
+    if fluent.parameters:
+        return RDDLPlanningModel.ground_var(fluent.name, fluent.parameters)
+    return fluent.name
 
 
 def _coerce_scalar(value: Any, dtype: FluentDType) -> Scalar:

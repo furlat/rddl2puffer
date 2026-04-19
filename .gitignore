@@ -10,3 +10,4 @@ dist/
 uv.lock
 third_party/
 .codex
+/artifacts

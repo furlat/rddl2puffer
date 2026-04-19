@@ -8,6 +8,7 @@ from rddl2puffer.reporting.cartpole_reward_report import (
     write_cartpole_reward_report,
 )
 from rddl2puffer.reporting.cartpole_sweep_report import write_cartpole_sweep_comparison
+from rddl2puffer.reporting.sweep_compare import write_sweep_comparison
 
 __all__ = [
     "CartPoleRewardReport",
@@ -16,4 +17,5 @@ __all__ = [
     "load_training_curve",
     "write_cartpole_sweep_comparison",
     "write_cartpole_reward_report",
+    "write_sweep_comparison",
 ]

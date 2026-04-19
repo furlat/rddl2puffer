@@ -58,3 +58,41 @@ def test_parse_rddl_sources_parses_in_memory_text() -> None:
 
     assert parsed.ast.domain.name == "mini"
     assert parsed.ast.instance.name == "mini_inst"
+
+
+def test_parse_rddl_sources_accepts_observ_fluent_defaults() -> None:
+    parsed = parse_rddl_sources(
+        domain_text="""
+        domain obs_defaults {
+            requirements = { reward-deterministic, partially-observed };
+            pvariables {
+                x : { state-fluent, real, default = 0.0 };
+                obs-x : { observ-fluent, real, default = 0.5 };
+            };
+            cpfs {
+                x' = x;
+                obs-x = x;
+            };
+            reward = 0.0;
+        }
+        """,
+        instance_text="""
+        non-fluents obs_defaults_nf {
+            domain = obs_defaults;
+        }
+
+        instance obs_defaults_inst {
+            domain = obs_defaults;
+            non-fluents = obs_defaults_nf;
+            init-state {
+                x = 1.0;
+            };
+            max-nondef-actions = pos-inf;
+            horizon = 4;
+            discount = 1.0;
+        }
+        """,
+    )
+
+    observ = next(pvar for pvar in parsed.ast.domain.pvariables if pvar.name == "obs-x")
+    assert observ.default == 0.5

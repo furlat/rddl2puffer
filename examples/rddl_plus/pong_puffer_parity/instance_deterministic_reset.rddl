@@ -1,0 +1,23 @@
+non-fluents pong_puffer_parity_nf {
+    domain = pong_puffer_parity;
+}
+
+instance inst_pong_puffer_parity_det_reset {
+    domain = pong_puffer_parity;
+    non-fluents = pong_puffer_parity_nf;
+
+    init-state {
+        paddle-yl = 285.0;
+        paddle-yr = 285.0;
+        ball-x = 100.0;
+        ball-y = 304.0;
+        ball-vx = 10.0;
+        ball-vy = 1.0;
+        score-l = 0;
+        score-r = 0;
+    };
+
+    max-nondef-actions = pos-inf;
+    horizon = 1000000;
+    discount = 1.0;
+}

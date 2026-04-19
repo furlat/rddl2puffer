@@ -42,6 +42,7 @@ def emit_env_header(program: IRProgram, env_name: str) -> str:
     action_sanitizers = _emit_action_sanitizers(spec)
     counter_captures = _emit_counter_captures(program, spec)
     reward_postprocess = _emit_reward_postprocess(spec)
+    tick_reset = _emit_tick_reset(program, spec)
     reset_state = "\n".join(
         f"env->{field.field_name} = {_float_literal(field.default_value)};"
         for field in spec.state_fields
@@ -66,6 +67,7 @@ def emit_env_header(program: IRProgram, env_name: str) -> str:
     stores_block = indent(stores, " " * 8) if stores else ""
     reward_block = indent(reward_postprocess, " " * 8) if reward_postprocess else ""
     counter_capture_block = indent(counter_captures, " " * 8) if counter_captures else ""
+    tick_reset_block = indent(tick_reset, " " * 8) if tick_reset else ""
     state_scratch_block = indent(
         _emit_next_state_scratch(program, spec),
         " " * 8,
@@ -178,6 +180,7 @@ def emit_env_header(program: IRProgram, env_name: str) -> str:
             env->rewards[0] = reward;
             env->terminals[0] = terminated ? 1.0f : 0.0f;
             env->episode_return += reward;
+        {tick_reset_block}
 
             if (done) {{
                 add_log(env);
@@ -232,7 +235,12 @@ def _emit_env_counter_fields(spec: GeneratedEnvSpec) -> str:
 
 def _emit_add_log_body(spec: GeneratedEnvSpec) -> str:
     lines: list[str] = []
-    if spec.perf_mode == "positive_return_div_horizon":
+    if spec.perf_mode == "state_ratio":
+        numerator = _state_field_expr(spec, spec.perf_numerator_state)
+        denominator_terms = " + ".join(_state_field_expr(spec, name) for name in spec.perf_denominator_states)
+        lines.append(f"float perf_den = {denominator_terms};")
+        lines.append(f"env->log.perf += perf_den > 0.0f ? ({numerator}) / perf_den : 0.0f;")
+    elif spec.perf_mode == "positive_return_div_horizon":
         lines.append(
             "env->log.perf = env->episode_return > 0.0f ? "
             f"env->episode_return / (float)({spec.prefix}_HORIZON > 0 ? {spec.prefix}_HORIZON : 1) : 0.0f;"
@@ -265,7 +273,15 @@ def _emit_counter_captures(program: IRProgram, spec: GeneratedEnvSpec) -> str:
     return "\n".join(lines)
 
 
+def _emit_tick_reset(program: IRProgram, spec: GeneratedEnvSpec) -> str:
+    if not spec.reset_tick_on:
+        return ""
+    return f"if (!done && {_counter_source_expr(program, spec.reset_tick_on)}) {{ env->tick = 0; }}"
+
+
 def _counter_source_expr(program: IRProgram, source: str) -> str:
+    if source == "$reward_nonzero":
+        return "(reward != 0.0f ? 1.0f : 0.0f)"
     if source == "$truncated":
         return "(truncated ? 1.0f : 0.0f)"
     if source == "$terminated":
@@ -277,6 +293,15 @@ def _counter_source_expr(program: IRProgram, source: str) -> str:
 
 def _last_counter_field(name: str) -> str:
     return f"last_{sanitize_c_identifier(name)}"
+
+
+def _state_field_expr(spec: GeneratedEnvSpec, state_name: str | None) -> str:
+    if state_name is None:
+        raise ValueError("Missing state name for state_ratio perf logging.")
+    for field in spec.state_fields:
+        if field.name == state_name:
+            return f"env->{field.field_name}"
+    raise ValueError(f"Unknown state fluent for state_ratio perf logging: {state_name}")
 
 
 def _emit_step_buffer_declarations(program: IRProgram, spec: GeneratedEnvSpec) -> str:

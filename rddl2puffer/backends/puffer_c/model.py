@@ -65,8 +65,11 @@ class GeneratedEnvSpec:
     horizon: int
     discount: float
     zero_reward_on_done: bool
+    reset_tick_on: str | None
     score_mode: str
     perf_mode: str
+    perf_numerator_state: str | None
+    perf_denominator_states: tuple[str, ...]
     log_counters: tuple[LogCounterSpec, ...]
     state_slots_fully_overwritten: bool
     observation_slots_fully_overwritten: bool
@@ -138,8 +141,11 @@ def build_env_spec(program: IRProgram, env_name: str) -> GeneratedEnvSpec:
         horizon=horizon,
         discount=discount,
         zero_reward_on_done=bool(runtime.get("zero_reward_on_done", False)),
+        reset_tick_on=str(runtime["reset_tick_on"]) if "reset_tick_on" in runtime else None,
         score_mode=str(logging.get("score_mode", "episode_return")),
         perf_mode=str(logging.get("perf_mode", "episode_return_div_horizon")),
+        perf_numerator_state=str(logging["perf_numerator_state"]) if "perf_numerator_state" in logging else None,
+        perf_denominator_states=_parse_csv_states(logging.get("perf_denominator_states")),
         log_counters=_parse_log_counters(logging),
         state_slots_fully_overwritten=state_slots_fully_overwritten,
         observation_slots_fully_overwritten=observation_slots_fully_overwritten,
@@ -261,6 +267,13 @@ def _parse_log_counters(logging: Mapping[str, object]) -> tuple[LogCounterSpec, 
             continue
         counters.append(LogCounterSpec(name=name, source=source))
     return tuple(counters)
+
+
+def _parse_csv_states(value: object) -> tuple[str, ...]:
+    if not isinstance(value, str):
+        return ()
+    parts = [part.strip() for part in value.split(",")]
+    return tuple(part for part in parts if part)
 
 
 def _camel_case(name: str) -> str:

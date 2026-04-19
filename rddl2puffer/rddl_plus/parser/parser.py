@@ -464,8 +464,18 @@ class RDDLParser(object):
             p[0] = PVariable(name=p[1], fluent_type='derived-fluent', range_type=p[6], param_types=p[2], level=1)
 
     def p_observfluent_def(self, p):
-        '''observfluent_def : IDENT param_list LCURLY OBSERVATION COMMA type_spec RCURLY SEMI'''
-        p[0] = PVariable(name=p[1], fluent_type='observ-fluent', range_type=p[6], param_types=p[2])
+        '''observfluent_def : IDENT param_list LCURLY OBSERVATION COMMA type_spec COMMA DEFAULT ASSIGN_EQUAL range_const RCURLY SEMI
+                            | IDENT param_list LCURLY OBSERVATION COMMA type_spec RCURLY SEMI'''
+        if len(p) == 13:
+            p[0] = PVariable(
+                name=p[1],
+                fluent_type='observ-fluent',
+                range_type=p[6],
+                param_types=p[2],
+                default=p[10],
+            )
+        else:
+            p[0] = PVariable(name=p[1], fluent_type='observ-fluent', range_type=p[6], param_types=p[2])
 
     def p_param_list(self, p):
         '''param_list : COLON
