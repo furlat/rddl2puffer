@@ -75,12 +75,17 @@ def emit_c_value_declarations(
     inferred: dict[str, CNodeValue],
     *,
     state_targets: Mapping[int, str] | None = None,
+    required_node_ids: set[str] | None = None,
 ) -> str:
     """Emit C local variable declarations for each non-store node."""
 
     lines: list[str] = []
     for index, node in enumerate(program.nodes):
+        if required_node_ids is not None and node.node_id not in required_node_ids:
+            continue
         if node.node_id not in inferred:
+            continue
+        if node.op is NodeOp.CONST:
             continue
         info = inferred[node.node_id]
         name = node_var_name(index, node.node_id)
@@ -134,6 +139,8 @@ def lookup_var_name(program: IRProgram, node_id: str) -> str:
 
     for index, node in enumerate(program.nodes):
         if node.node_id == node_id:
+            if node.op is NodeOp.CONST:
+                return _emit_node_expr(program, node)
             return node_var_name(index, node.node_id)
     raise KeyError(f"Unknown IR node id: {node_id}")
 
@@ -253,3 +260,33 @@ def _float_literal(value: float) -> str:
     if "e" not in text and "." not in text:
         text += ".0"
     return f"{text}f"
+
+
+def required_node_ids(program: IRProgram, *, extra_roots: tuple[str, ...] = ()) -> set[str]:
+    """Return the transitive node ids needed to produce stores and extra roots."""
+
+    node_by_id = {node.node_id: node for node in program.nodes}
+    stack: list[str] = []
+    for node in program.nodes:
+        if node.op in {
+            NodeOp.STORE_NEXT_STATE,
+            NodeOp.STORE_OBS,
+            NodeOp.STORE_REWARD,
+            NodeOp.STORE_DONE,
+        }:
+            stack.extend(node.args)
+    for root in extra_roots:
+        if root in node_by_id:
+            stack.append(root)
+
+    required: set[str] = set()
+    while stack:
+        node_id = stack.pop()
+        if node_id in required:
+            continue
+        node = node_by_id.get(node_id)
+        if node is None:
+            continue
+        required.add(node_id)
+        stack.extend(node.args)
+    return required

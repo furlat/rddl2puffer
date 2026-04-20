@@ -11,6 +11,7 @@ from rddl2puffer.backends.puffer_c.emit_helpers import (
     emit_c_value_declarations,
     infer_c_node_values,
     lookup_var_name,
+    required_node_ids,
     sanitize_c_identifier,
 )
 from rddl2puffer.backends.puffer_c.model import GeneratedEnvSpec, build_env_spec
@@ -21,9 +22,19 @@ def emit_env_header(program: IRProgram, env_name: str) -> str:
     """Emit a generic scalar-state Ocean environment from the ordered IR."""
 
     spec = build_env_spec(program, env_name)
+    if spec.step_template == "pong_native_loop":
+        return _emit_pong_native_loop_header(program, spec)
+
     inferred = infer_c_node_values(program)
+    extra_roots = _metadata_node_roots(spec)
+    live_nodes = required_node_ids(program, extra_roots=extra_roots)
     state_targets = {field.slot: f"env->{field.field_name}" for field in spec.state_fields}
-    declarations = emit_c_value_declarations(program, inferred, state_targets=state_targets)
+    declarations = emit_c_value_declarations(
+        program,
+        inferred,
+        state_targets=state_targets,
+        required_node_ids=live_nodes,
+    )
     next_state_targets = (
         {field.slot: f"next_{field.field_name}" for field in spec.state_fields}
         if spec.state_slots_fully_overwritten
@@ -199,6 +210,259 @@ def emit_env_header(program: IRProgram, env_name: str) -> str:
     )
 
 
+def _emit_pong_native_loop_header(program: IRProgram, spec: GeneratedEnvSpec) -> str:
+    state_fields = {field.name: field.field_name for field in spec.state_fields}
+    required_states = (
+        "paddle-yl",
+        "paddle-yr",
+        "ball-x",
+        "ball-y",
+        "ball-vx",
+        "ball-vy",
+        "score-l",
+        "score-r",
+    )
+    missing = [name for name in required_states if name not in state_fields]
+    if missing:
+        raise ValueError(
+            f"Pong native loop template requires state fluents {required_states}, missing {missing}."
+        )
+    obs_slots = {fluent.qualified_name: fluent.flat_index for fluent in program.observation_layout.fluents}
+    required_obs = (
+        "obs-paddle-yl",
+        "obs-paddle-yr",
+        "obs-ball-x",
+        "obs-ball-y",
+        "obs-ball-vx",
+        "obs-ball-vy",
+        "obs-score-l",
+        "obs-score-r",
+    )
+    missing_obs = [name for name in required_obs if obs_slots.get(name) is None]
+    if missing_obs:
+        raise ValueError(
+            f"Pong native loop template requires observation fluents {required_obs}, missing {missing_obs}."
+        )
+
+    paddle_yl = f"env->{state_fields['paddle-yl']}"
+    paddle_yr = f"env->{state_fields['paddle-yr']}"
+    ball_x = f"env->{state_fields['ball-x']}"
+    ball_y = f"env->{state_fields['ball-y']}"
+    ball_vx = f"env->{state_fields['ball-vx']}"
+    ball_vy = f"env->{state_fields['ball-vy']}"
+    score_l = f"env->{state_fields['score-l']}"
+    score_r = f"env->{state_fields['score-r']}"
+    sample_helper_block = indent(_emit_sample_helpers(program), " " * 0)
+    log_struct_fields = _emit_log_struct_fields(spec)
+    env_counter_fields = _emit_env_counter_fields(spec)
+    log_updates = _emit_add_log_body(spec)
+    reset_log_fields = "\n".join(
+        f"env->{_last_counter_field(counter.name)} = 0.0f;" for counter in spec.log_counters
+    )
+    reset_log_block = indent(reset_log_fields, " " * 8) if reset_log_fields else ""
+
+    obs_lines = [
+        f"env->observations[{obs_slots['obs-paddle-yl']}] = ({paddle_yl} + 35.0f) / 640.0f;",
+        f"env->observations[{obs_slots['obs-paddle-yr']}] = ({paddle_yr} + 35.0f) / 640.0f;",
+        f"env->observations[{obs_slots['obs-ball-x']}] = {ball_x} / 500.0f;",
+        f"env->observations[{obs_slots['obs-ball-y']}] = {ball_y} / 640.0f;",
+        f"env->observations[{obs_slots['obs-ball-vx']}] = ({ball_vx} + 10.0f) / 20.0f;",
+        f"env->observations[{obs_slots['obs-ball-vy']}] = ({ball_vy} + 13.0f) / 26.0f;",
+        f"env->observations[{obs_slots['obs-score-l']}] = {score_l} / 21.0f;",
+        f"env->observations[{obs_slots['obs-score-r']}] = {score_r} / 21.0f;",
+    ]
+    compute_observations_block = indent("\n".join(obs_lines), " " * 4)
+    substeps = max(1, spec.substeps)
+
+    return dedent(
+        f"""\
+        #pragma once
+        #include <math.h>
+        #include <stdbool.h>
+        #include <stddef.h>
+        #include <stdlib.h>
+        #include <stdint.h>
+        #include <string.h>
+
+        #define {spec.prefix}_STATE_SIZE {program.state_layout.total_size}
+        #define {spec.prefix}_ACTION_SIZE {program.action_layout.total_size}
+        #define {spec.prefix}_OBS_SIZE {program.observation_layout.total_size}
+        #define {spec.prefix}_HORIZON {spec.horizon}
+
+        typedef struct {{
+            float perf;
+            float score;
+            float episode_return;
+            float episode_length;
+            float n;
+        {log_struct_fields}
+        }} Log;
+
+        typedef struct {{
+            Log log;
+            float* observations;
+            float* actions;
+            float* rewards;
+            float* terminals;
+            int num_agents;
+            int tick;
+            float episode_return;
+            unsigned int rng;
+        {_emit_state_struct_fields(spec)}
+        {env_counter_fields}
+        }} {spec.struct_name};
+
+        {sample_helper_block}
+
+        static inline void add_log({spec.struct_name}* env) {{
+        {indent(log_updates, " " * 4)}
+        }}
+
+        static inline void compute_observations({spec.struct_name}* env) {{
+        {compute_observations_block}
+        }}
+
+        static inline void reset_round({spec.struct_name}* env) {{
+            {paddle_yl} = 285.0f;
+            {paddle_yr} = 285.0f;
+            {ball_x} = 100.0f;
+            {ball_y} = 304.0f;
+            {ball_vx} = 10.0f;
+            {ball_vy} = 1.0f;
+            env->tick = 0;
+        }}
+
+        static inline void c_reset({spec.struct_name}* env) {{
+            env->tick = 0;
+            env->episode_return = 0.0f;
+            reset_round(env);
+            {score_l} = 0.0f;
+            {score_r} = 0.0f;
+            compute_observations(env);
+        {reset_log_block}
+        }}
+
+        static inline void c_step({spec.struct_name}* env) {{
+            float reward = 0.0f;
+            bool terminated = false;
+            bool truncated = false;
+            bool done = false;
+
+            env->tick += 1;
+            env->rewards[0] = 0.0f;
+            env->terminals[0] = 0.0f;
+
+            float action_0 = env->actions[0];
+            if (!isfinite(action_0)) {{ action_0 = 0.0f; }}
+            action_0 = fmaxf(action_0, 0.0f);
+            action_0 = fminf(action_0, 2.0f);
+            env->actions[0] = action_0;
+
+            float paddle_dir = 0.0f;
+            if (action_0 == 1.0f) {{
+                paddle_dir = 1.0f;
+            }} else if (action_0 == 2.0f) {{
+                paddle_dir = -1.0f;
+            }}
+
+            for (int i = 0; i < {substeps}; i++) {{
+                {paddle_yr} += 8.0f * paddle_dir;
+
+                float opp_paddle_delta = {ball_y} - ({paddle_yl} + 35.0f);
+                opp_paddle_delta = fminf(fmaxf(opp_paddle_delta, -8.0f), 8.0f);
+                {paddle_yl} += opp_paddle_delta;
+
+                {paddle_yr} = fminf(fmaxf({paddle_yr}, -35.0f), 605.0f);
+                {paddle_yl} = fminf(fmaxf({paddle_yl}, -35.0f), 605.0f);
+
+                {ball_x} += {ball_vx};
+                {ball_y} += {ball_vy};
+
+                if ({ball_y} < 0.0f || {ball_y} + 32.0f > 640.0f) {{
+                    {ball_vy} = -{ball_vy};
+                }}
+
+                if ({ball_x} < 0.0f) {{
+                    if ({ball_y} + 32.0f > {paddle_yl} && {ball_y} < {paddle_yl} + 70.0f) {{
+                        {ball_vx} = -{ball_vx};
+                    }} else {{
+                        {score_r} += 1.0f;
+                        reward = 1.0f;
+                        if ({score_r} == 21.0f) {{
+                            terminated = true;
+                            done = true;
+                            env->rewards[0] = reward;
+                            env->terminals[0] = 1.0f;
+                            env->episode_return += reward;
+                            add_log(env);
+                            c_reset(env);
+                            return;
+                        }}
+                        reset_round(env);
+                        compute_observations(env);
+                        env->rewards[0] = reward;
+                        env->episode_return += reward;
+                        return;
+                    }}
+                }}
+
+                if ({ball_x} + 32.0f > 500.0f) {{
+                    if ({ball_y} + 32.0f > {paddle_yr} && {ball_y} < {paddle_yr} + 70.0f) {{
+                        {ball_vx} = -{ball_vx};
+                        {ball_vy} += 3.0f * paddle_dir;
+                        {ball_vy} = fminf(fmaxf({ball_vy}, -13.0f), 13.0f);
+                        if (fabsf({ball_vy}) < 0.01f) {{
+                            {ball_vy} = 3.0f;
+                        }}
+                    }} else {{
+                        {score_l} += 1.0f;
+                        reward = -1.0f;
+                        if ({score_l} == 21.0f) {{
+                            terminated = true;
+                            done = true;
+                            env->rewards[0] = reward;
+                            env->terminals[0] = 1.0f;
+                            env->episode_return += reward;
+                            add_log(env);
+                            c_reset(env);
+                            return;
+                        }}
+                        reset_round(env);
+                        compute_observations(env);
+                        env->rewards[0] = reward;
+                        env->episode_return += reward;
+                        return;
+                    }}
+                    {ball_x} = fminf(fmaxf({ball_x}, 0.0f), 468.0f);
+                    {ball_y} = fminf(fmaxf({ball_y}, 0.0f), 608.0f);
+                }}
+
+                compute_observations(env);
+            }}
+
+            truncated = ({spec.prefix}_HORIZON > 0) && (env->tick >= {spec.prefix}_HORIZON);
+            done = terminated || truncated;
+            env->rewards[0] = reward;
+            env->terminals[0] = terminated ? 1.0f : 0.0f;
+            env->episode_return += reward;
+
+            if (done) {{
+                add_log(env);
+                c_reset(env);
+            }}
+        }}
+
+        static inline void c_render({spec.struct_name}* env) {{
+            (void)env;
+        }}
+
+        static inline void c_close({spec.struct_name}* env) {{
+            (void)env;
+        }}
+        """
+    )
+
+
 def _emit_action_sanitizers(spec: GeneratedEnvSpec) -> str:
     lines: list[str] = []
     for head in spec.action_heads:
@@ -354,3 +618,13 @@ def _emit_sample_helpers(program: IRProgram) -> str:
         }
         """
     ).rstrip()
+
+
+def _metadata_node_roots(spec: GeneratedEnvSpec) -> tuple[str, ...]:
+    roots: list[str] = []
+    if spec.reset_tick_on and not spec.reset_tick_on.startswith("$"):
+        roots.append(spec.reset_tick_on)
+    for counter in spec.log_counters:
+        if not counter.source.startswith("$"):
+            roots.append(counter.source)
+    return tuple(roots)

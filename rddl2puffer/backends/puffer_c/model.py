@@ -74,6 +74,8 @@ class GeneratedEnvSpec:
     state_slots_fully_overwritten: bool
     observation_slots_fully_overwritten: bool
     reset_observation_slots_fully_overwritten: bool
+    step_template: str | None = None
+    substeps: int = 1
     observation_tensor_type: str = "FloatTensor"
 
     @property
@@ -129,6 +131,7 @@ def build_env_spec(program: IRProgram, env_name: str) -> GeneratedEnvSpec:
     discount = float(program.metadata.get("discount", 1.0))
     runtime = _mapping_metadata(program.metadata.get("runtime_semantics"))
     logging = _mapping_metadata(program.metadata.get("puffer_logging"))
+    codegen = _mapping_metadata(program.metadata.get("puffer_codegen"))
 
     return GeneratedEnvSpec(
         env_name=env_name,
@@ -150,6 +153,8 @@ def build_env_spec(program: IRProgram, env_name: str) -> GeneratedEnvSpec:
         state_slots_fully_overwritten=state_slots_fully_overwritten,
         observation_slots_fully_overwritten=observation_slots_fully_overwritten,
         reset_observation_slots_fully_overwritten=reset_observation_slots_fully_overwritten,
+        step_template=str(codegen["step_template"]) if "step_template" in codegen else None,
+        substeps=int(codegen.get("substeps", 1)),
     )
 
 

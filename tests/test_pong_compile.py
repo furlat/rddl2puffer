@@ -74,10 +74,17 @@ def test_compile_pong_puffer_parity_domain_and_emit_reset_observations() -> None
     assert program.state_layout.total_size == 8
     assert program.observation_layout.total_size == 8
     assert program.metadata["runtime_semantics"]["reset_tick_on"] == "$reward_nonzero"
+    assert program.metadata["puffer_codegen"]["step_template"] == "pong_native_loop"
+    assert program.metadata["puffer_codegen"]["substeps"] == 8
 
     bundle = render_env_bundle(program, env_name="rddl_pong_parity")
     header = bundle["ocean/rddl_pong_parity/rddl_pong_parity.h"]
-    assert "env->observations[0] = 0.5f;" in header
-    assert "env->observations[2] = 0.2f;" in header
-    assert "if (!done && (reward != 0.0f ? 1.0f : 0.0f)) { env->tick = 0; }" in header
+    ini = bundle["config/rddl_pong_parity.ini"]
+    assert "static inline void reset_round(RddlPongParity* env)" in header
+    assert "static inline void compute_observations(RddlPongParity* env)" in header
+    assert "for (int i = 0; i < 8; i++) {" in header
+    assert "env->observations[0] = (env->paddle_yl + 35.0f) / 640.0f;" in header
+    assert "env->observations[2] = env->ball_x / 500.0f;" in header
     assert "env->log.perf += perf_den > 0.0f ? (env->score_r) / perf_den : 0.0f;" in header
+    assert "float v_0_load_state_paddle_yl" not in header
+    assert "use_rnn = 1" in ini

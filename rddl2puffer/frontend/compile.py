@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 import json
+import math
 from pathlib import Path
 import re
 from typing import Mapping
@@ -84,6 +85,7 @@ class _SubsetLowerer:
     _nodes: list[CPFNode] = field(init=False)
     _counter: int = field(init=False)
     _value_cache: dict[tuple[object, ...], str] = field(init=False)
+    _const_values: dict[str, object] = field(init=False)
     _current_symbols: dict[str, str] = field(init=False)
     _next_state_symbols: dict[str, str] = field(init=False)
     _observation_symbols: dict[str, str] = field(init=False)
@@ -95,6 +97,7 @@ class _SubsetLowerer:
         object.__setattr__(self, "_nodes", [])
         object.__setattr__(self, "_counter", 0)
         object.__setattr__(self, "_value_cache", {})
+        object.__setattr__(self, "_const_values", {})
         object.__setattr__(self, "_current_symbols", {})
         object.__setattr__(self, "_next_state_symbols", {})
         object.__setattr__(self, "_observation_symbols", {})
@@ -472,6 +475,8 @@ class _SubsetLowerer:
         slot: int | None = None,
     ) -> str:
         self._nodes.append(CPFNode(node_id=node_id, op=op, args=args, value=value, slot=slot))
+        if op is NodeOp.CONST:
+            self._const_values[node_id] = value
         self._counter += 1
         return node_id
 
@@ -485,6 +490,10 @@ class _SubsetLowerer:
         value: object | None = None,
         slot: int | None = None,
     ) -> str:
+        folded = self._try_fold(op, args=args, value=value)
+        if folded is not None:
+            return folded
+
         existing = self._value_cache.get(cache_key)
         if existing is not None:
             return existing
@@ -492,6 +501,121 @@ class _SubsetLowerer:
         emitted = self._emit(op, node_id=node_id, args=args, value=value, slot=slot)
         self._value_cache[cache_key] = emitted
         return emitted
+
+    def _try_fold(
+        self,
+        op: NodeOp,
+        *,
+        args: tuple[str, ...],
+        value: object | None = None,
+    ) -> str | None:
+        const_args = [self._const_values.get(arg) for arg in args]
+
+        if op is NodeOp.SELECT:
+            predicate = const_args[0]
+            if isinstance(predicate, bool):
+                return args[1] if predicate else args[2]
+            if len(args) == 3 and args[1] == args[2]:
+                return args[1]
+            return None
+
+        if op is NodeOp.NOT and isinstance(const_args[0], bool):
+            return self._emit_const(value=not const_args[0])
+
+        if op is NodeOp.NEG and isinstance(const_args[0], int | float):
+            return self._emit_const(value=-float(const_args[0]))
+
+        if op in {NodeOp.SIN, NodeOp.COS} and isinstance(const_args[0], int | float):
+            folded_value = math.sin(float(const_args[0])) if op is NodeOp.SIN else math.cos(float(const_args[0]))
+            return self._emit_const(value=folded_value)
+
+        if op in {NodeOp.ADD, NodeOp.SUB, NodeOp.MUL, NodeOp.DIV, NodeOp.MIN, NodeOp.MAX}:
+            lhs, rhs = const_args
+            if isinstance(lhs, int | float) and isinstance(rhs, int | float):
+                left = float(lhs)
+                right = float(rhs)
+                folded_value = {
+                    NodeOp.ADD: left + right,
+                    NodeOp.SUB: left - right,
+                    NodeOp.MUL: left * right,
+                    NodeOp.DIV: left / right,
+                    NodeOp.MIN: min(left, right),
+                    NodeOp.MAX: max(left, right),
+                }[op]
+                return self._emit_const(value=folded_value)
+            return self._fold_numeric_identity(op, args, lhs, rhs)
+
+        if op in {NodeOp.LT, NodeOp.LE, NodeOp.GT, NodeOp.GE, NodeOp.EQ, NodeOp.NE}:
+            lhs, rhs = const_args
+            if isinstance(lhs, bool) and isinstance(rhs, bool):
+                left = lhs
+                right = rhs
+            elif isinstance(lhs, int | float) and isinstance(rhs, int | float):
+                left = float(lhs)
+                right = float(rhs)
+            else:
+                return None
+            folded_value = {
+                NodeOp.LT: left < right,
+                NodeOp.LE: left <= right,
+                NodeOp.GT: left > right,
+                NodeOp.GE: left >= right,
+                NodeOp.EQ: left == right,
+                NodeOp.NE: left != right,
+            }[op]
+            return self._emit_const(value=folded_value)
+
+        if op in {NodeOp.AND, NodeOp.OR}:
+            lhs, rhs = const_args
+            if isinstance(lhs, bool) and isinstance(rhs, bool):
+                folded_value = (lhs and rhs) if op is NodeOp.AND else (lhs or rhs)
+                return self._emit_const(value=folded_value)
+            if isinstance(lhs, bool):
+                if op is NodeOp.AND:
+                    return args[1] if lhs else self._emit_const(value=False)
+                return self._emit_const(value=True) if lhs else args[1]
+            if isinstance(rhs, bool):
+                if op is NodeOp.AND:
+                    return args[0] if rhs else self._emit_const(value=False)
+                return self._emit_const(value=True) if rhs else args[0]
+
+        return None
+
+    def _fold_numeric_identity(
+        self,
+        op: NodeOp,
+        args: tuple[str, ...],
+        lhs: object | None,
+        rhs: object | None,
+    ) -> str | None:
+        if isinstance(lhs, int | float):
+            left = float(lhs)
+            if op is NodeOp.ADD and left == 0.0:
+                return args[1]
+            if op is NodeOp.MUL:
+                if left == 0.0:
+                    return self._emit_const(value=0.0)
+                if left == 1.0:
+                    return args[1]
+            if op is NodeOp.MIN and math.isinf(left) and left > 0:
+                return args[1]
+            if op is NodeOp.MAX and math.isinf(left) and left < 0:
+                return args[1]
+
+        if isinstance(rhs, int | float):
+            right = float(rhs)
+            if op in {NodeOp.ADD, NodeOp.SUB} and right == 0.0:
+                return args[0]
+            if op in {NodeOp.MUL, NodeOp.DIV} and right == 1.0:
+                return args[0]
+            if op is NodeOp.MUL and right == 0.0:
+                return self._emit_const(value=0.0)
+            if op is NodeOp.MIN and math.isinf(right) and right > 0:
+                return args[0]
+            if op is NodeOp.MAX and math.isinf(right) and right < 0:
+                return args[0]
+
+        return None
 
     @staticmethod
     def _require_slot(slots: Mapping[str, int | None], canonical_name: str, label: str) -> int:

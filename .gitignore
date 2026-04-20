@@ -8,6 +8,5 @@ build/
 dist/
 *.egg-info/
 uv.lock
-third_party/
 .codex
 /artifacts
